@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>DON'T OPEN IT</title>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #071c13, #164d2c, #06140d);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    overflow: hidden;
+}
+
+.menu {
+    text-align: center;
+    padding: 30px;
+    width: 100%;
+    max-width: 500px;
+}
+
+h1 {
+    font-size: clamp(45px, 9vw, 75px);
+    font-weight: 900;
+    color: #ffc83d;
+    text-shadow:
+        0 5px 0 #8b4b00,
+        0 10px 20px black;
+    animation: float 3s ease-in-out infinite;
+}
+
+.subtitle {
+    margin-top: 20px;
+    margin-bottom: 50px;
+    font-size: 18px;
+    color: #c6e8ce;
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    margin: 15px 0;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid #ffcc33;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.create {
+    background: linear-gradient(135deg, #ffcc33, #ff8800);
+    color: #251400;
+}
+
+.join {
+    background: #102b20;
+    color: white;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #ffc83d;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+.box {
+    font-size: 100px;
+    margin-bottom: 30px;
+    animation: float 3s ease-in-out infinite;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+
+    <div class="box">📦</div>
+
+    <h1>DON'T<br>OPEN IT</h1>
+
+    <p class="subtitle">
+        One box. Many secrets.<br>
+        Only one survivor.
+    </p>
+
+    <button class="create" onclick="createLobby()">
+        🎮 CREATE LOBBY
+    </button>
+
+    <button class="join" onclick="joinLobby()">
+        🔑 JOIN LOBBY
+    </button>
+
+</div>
+
+<script>
+
+function createLobby() {
+    alert("Create Lobby coming soon!");
+}
+
+function joinLobby() {
+    alert("Join Lobby coming soon!");
+}
+
+</script>
+
+</body>
+</html>
