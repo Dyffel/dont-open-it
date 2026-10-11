@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#001d30"><title>DON'T OPEN IT — V0.3</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#001522;color:white;font-family:system-ui,-apple-system,sans-serif}body{display:grid;place-items:center;overflow-x:hidden}.scene{width:min(100vw,calc(100dvh * 1024 / 1536));aspect-ratio:1024/1536;position:relative;background:#00253a url('menu-art.png') center/100% 100% no-repeat;box-shadow:0 0 90px #000b}button{font:inherit;cursor:pointer}.hotspot{position:absolute;background:transparent;border:0;border-radius:14px;touch-action:manipulation}.hotspot:focus-visible{outline:3px solid white;outline-offset:-4px}.hotspot:active{background:#ffffff22}.create{left:17%;top:55.3%;width:66%;height:8.4%}.join{left:17%;top:64.9%;width:66%;height:8.7%}.sound{left:3%;top:2.2%;width:9%;height:6%}.settings{right:3%;top:2.2%;width:9%;height:6%}.theme{top:78.5%;height:15%;width:18%}.theme:nth-of-type(5){left:1%}.theme:nth-of-type(6){left:21%}.theme:nth-of-type(7){left:41%}.theme:nth-of-type(8){left:61%}.theme:nth-of-type(9){left:81%}.overlay{position:fixed;inset:0;background:#00111dd9;display:grid;place-items:center;padding:20px;z-index:3;backdrop-filter:blur(7px)}[hidden]{display:none!important}.dialog{width:min(440px,100%);border:2px solid #47d9ff;border-radius:24px;padding:28px;background:linear-gradient(160deg,#073c5b,#001525);box-shadow:0 12px 65px #000c;text-align:center}.dialog h2{font-family:Georgia,serif;color:#ffda78;font-size:clamp(27px,7vw,38px);margin:4px 0 22px}.dialog label{display:block;text-align:left;font-weight:800;letter-spacing:1px;color:#a7efff;margin:16px 0 7px}.dialog input{width:100%;font-size:19px;padding:14px;border-radius:12px;border:2px solid #55dfff;background:#001727;color:white}.primary,.secondary{display:block;width:100%;border-radius:12px;padding:14px;margin-top:17px;font-weight:900;font-size:18px}.primary{background:linear-gradient(#ffe58b,#e69500);border:2px solid #fff0ac;color:#3d1b00}.secondary{background:#06263b;border:1px solid #6cdfff;color:white}.notice{font-size:13px;line-height:1.5;color:#b7d8e4;min-height:22px}.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#031a2e;border:1px solid #66d9ff;padding:12px 18px;border-radius:12px;z-index:4;max-width:90vw;text-align:center;box-shadow:0 8px 35px #000b}@media (orientation:landscape){body{min-height:100dvh}.scene{width:min(100vw,calc(100dvh * 1024 / 1536));}}@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<main class="scene" aria-label="DON'T OPEN IT underwater main menu, The Sunken Kingdom">
+<button class="hotspot sound" aria-label="Toggle sound" onclick="toggleSound()"></button>
+<button class="hotspot settings" aria-label="Settings" onclick="openDialog('settings')"></button>
+<button class="hotspot create" aria-label="Create lobby" onclick="openDialog('create')"></button>
+<button class="hotspot join" aria-label="Join lobby" onclick="openDialog('join')"></button>
+<button class="hotspot theme" aria-label="Jungle theme" onclick="theme('Jungle')"></button>
+<button class="hotspot theme" aria-label="Forest theme" onclick="theme('Forest')"></button>
+<button class="hotspot theme" aria-label="Underwater theme" onclick="theme('Underwater')"></button>
+<button class="hotspot theme" aria-label="Lava theme" onclick="theme('Lava')"></button>
+<button class="hotspot theme" aria-label="Space theme" onclick="theme('Space')"></button>
+</main>
+<div class="overlay" id="overlay" hidden><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><h2 id="dialogTitle"></h2><form id="form"><div id="fields"></div><button type="submit" class="primary" id="submit">CONTINUE</button></form><p class="notice" id="notice"></p><button class="secondary" type="button" onclick="closeDialog()">BACK TO MENU</button></section></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+'use strict';
+const overlay=document.getElementById('overlay'),form=document.getElementById('form'),fields=document.getElementById('fields'),notice=document.getElementById('notice'),title=document.getElementById('dialogTitle');let mode='create',muted=false,toastTimer;
+function openDialog(type){mode=type;title.textContent=type==='create'?'Create Lobby':type==='join'?'Join Lobby':'Settings';form.hidden=type==='settings';fields.innerHTML=type==='settings'?'':`<label for="playerName">YOUR NAME</label><input id="playerName" name="name" autocomplete="nickname" maxlength="20" placeholder="Enter your name" required>${type==='join'?'<label for="roomCode">LOBBY CODE</label><input id="roomCode" name="code" maxlength="8" autocapitalize="characters" placeholder="Enter code" required>':''}`;notice.textContent=type==='settings'?'Visual prototype v0.3. Sound and multiplayer connection are not implemented yet.':'This is a visual menu demo. Online lobbies will be enabled after Supabase setup.';overlay.hidden=false;document.body.style.overflow='hidden';if(type!=='settings')document.getElementById('playerName').focus()}
+function closeDialog(){overlay.hidden=true;document.body.style.overflow='';}
+form.addEventListener('submit',e=>{e.preventDefault();const name=new FormData(form).get('name').trim();if(!name)return;notice.textContent=`Welcome, ${name}! Real ${mode==='create'?'lobby creation':'lobby joining'} needs Supabase; no room was ${mode==='create'?'created':'joined'}.`;});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeDialog()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)closeDialog()});
+function showToast(message){const el=document.getElementById('toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,2800)}
+function theme(name){showToast(name==='Underwater'?'Underwater theme selected!':`${name} artwork is coming next. Underwater preview stays visible.`)}
+function toggleSound(){muted=!muted;showToast('Sound effects are not added yet.');}
+</script></body></html>
