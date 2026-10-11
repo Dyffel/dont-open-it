@@ -1,3 +1,96 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#031b31"><title>DON'T OPEN IT — Underwater</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#021d32">
+<title>DON'T OPEN IT — The Sunken Kingdom</title>
 <style>
+:root{--gold:#ffd777;--aqua:#79f3ff;--ink:#061e32}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Georgia,serif;color:white;background:#021b30}
+button,input{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid #b1faff;outline-offset:4px}
+.scene{position:relative;isolation:isolate;min-height:100svh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 14%,#4ad5df99 0%,transparent 43%),linear-gradient(180deg,#067b99 0%,#064c72 42%,#021b35 78%,#010d20 100%)}
+.ocean-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-3}
+.scene:before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,#00131bb5,transparent 35%,transparent 65%,#00131bb5),linear-gradient(180deg,#001c2b33,#00142620 45%,#001324b0)}
+.rays{position:absolute;inset:-30%;pointer-events:none;z-index:-1;background:repeating-conic-gradient(from 180deg at 50% 0%,transparent 0deg 7deg,#bbffff14 9deg 11deg,transparent 14deg 25deg);animation:shimmer 13s ease-in-out infinite alternate;transform-origin:50% 0}
+@keyframes shimmer{to{transform:rotate(8deg);opacity:.5}}
+.bubbles,.fishfield{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.bubble{position:absolute;bottom:-60px;border:1px solid #b5fbff8c;border-radius:50%;box-shadow:inset -3px -3px 5px #ffffff24,0 0 12px #85f7ff3d;animation:rise linear infinite}
+@keyframes rise{to{transform:translate(40px,-120vh);opacity:0}}
+.fish{position:absolute;left:-120px;display:block;width:80px;opacity:.85;filter:drop-shadow(0 4px 4px #001d31);animation:swim linear infinite}
+.fish svg{width:100%;display:block}
+@keyframes swim{to{transform:translateX(calc(100vw + 230px))}}
+.menu{position:relative;z-index:3;width:min(92vw,560px);text-align:center;padding:32px 22px 40px;margin:30px auto;background:linear-gradient(180deg,#031d31aa,#021522c7);border:1px solid #8bdce35e;border-radius:28px;box-shadow:0 20px 75px #0009,inset 0 1px #d4ffff45;backdrop-filter:blur(5px)}
+.eyebrow{color:#9ef9ff;letter-spacing:.34em;font:700 clamp(10px,1.7vw,14px) Arial,sans-serif;text-shadow:0 2px 5px #002c40}
+h1{margin:14px 0 8px;font-size:clamp(43px,9vw,84px);line-height:.93;letter-spacing:.015em;color:#ffe5a0;text-shadow:0 3px #93521d,0 6px #3a210e,0 9px 20px #000,0 0 24px #e7ae4070}
+h1 span{display:block}.subtitle{font:italic clamp(15px,3vw,20px) Georgia,serif;color:#d3faff;margin:18px 0 8px}
+.chest-wrap{width:min(66vw,320px);height:clamp(135px,26vw,215px);margin:12px auto 18px;position:relative;animation:float 4s ease-in-out infinite;filter:drop-shadow(0 15px 18px #000b)}
+@keyframes float{50%{transform:translateY(-8px)}}
+.chest{width:100%;height:100%;overflow:visible}
+.actions{display:grid;gap:12px;width:min(100%,390px);margin:auto}
+.btn{min-height:60px;border-radius:14px;border:2px solid #ffd37d;color:#fff7d9;background:linear-gradient(#76502b,#422613 50%,#251408);box-shadow:inset 0 2px #fff4ae80,0 6px 0 #130b08,0 12px 22px #0008;text-shadow:0 2px 3px #000;font:bold 19px Arial,sans-serif;letter-spacing:.05em;transition:transform .15s,filter .15s}
+.btn:hover{filter:brightness(1.15)}.btn:active{transform:translateY(4px);box-shadow:inset 0 2px #fff4ae80,0 2px 0 #130b08}
+.btn.primary{background:linear-gradient(#fbd878,#b77729 55%,#6e3b12);color:#271809;text-shadow:0 1px #ffe7aa}
+.small{font:12px Arial,sans-serif;letter-spacing:.08em;color:#a9cbd4;margin-top:25px}
+.screen{display:none}.screen.active{display:block}
+.screen h2{font-size:clamp(27px,6vw,40px);color:#ffdc83;text-shadow:0 3px 6px #000;margin:16px 0 22px}
+.field{text-align:left;display:block;font:bold 13px Arial,sans-serif;letter-spacing:.1em;color:#b9f7ff;margin:0 auto 17px;max-width:390px}
+.field input{display:block;width:100%;margin-top:8px;border:2px solid #66c4d5;border-radius:12px;background:#001725d9;color:#fff;font:18px Arial,sans-serif;padding:15px;min-height:54px}
+.field input::placeholder{color:#a1b6bf}
+.message{min-height:25px;color:#ffdf91;font:14px Arial,sans-serif;margin:16px auto 0}
+.back{background:transparent;border:0;color:#c4f9ff;font:bold 15px Arial,sans-serif;margin-top:19px;padding:12px}
+.badge{display:inline-block;background:#002337c9;border:1px solid #6ce0e5;border-radius:10px;padding:10px 15px;color:#b8faff;font:13px Arial,sans-serif;letter-spacing:.12em}
+@media(max-width:430px){.menu{padding:23px 16px 28px;margin:16px auto}.chest-wrap{height:155px;margin:8px auto 12px}.btn{min-height:56px;font-size:17px}.small{margin-top:18px}}
+@media(orientation:landscape) and (max-height:560px){.scene{min-height:100svh;align-items:center}.menu{width:min(96vw,840px);padding:12px 22px;margin:8px auto}.screen.active#home{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"heading buttons" "chest buttons";align-items:center;column-gap:22px}.home-head{grid-area:heading}.chest-wrap{grid-area:chest;width:min(30vw,220px);height:95px;margin:0 auto}.actions{grid-area:buttons}.small{display:none}h1{font-size:clamp(30px,6vw,54px);margin:4px}.subtitle{margin:7px}.btn{min-height:45px}.screen h2{margin:4px 0 10px}.field{margin-bottom:8px}.field input{min-height:42px;padding:9px}.back{margin-top:4px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="scene">
+<svg class="ocean-art" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="water" x2="0" y2="1"><stop stop-color="#19b5ca"/><stop offset=".42" stop-color="#08678e"/><stop offset="1" stop-color="#01152c"/></linearGradient>
+<radialGradient id="glow"><stop stop-color="#b7ffff" stop-opacity=".65"/><stop offset="1" stop-color="#b7ffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="rock" x2=".8" y2="1"><stop stop-color="#3d7778"/><stop offset="1" stop-color="#12333d"/></linearGradient>
+</defs>
+<rect width="1200" height="900" fill="url(#water)"/><ellipse cx="600" cy="-30" rx="500" ry="470" fill="url(#glow)"/>
+<g opacity=".27" fill="#012b49"><path d="M0 700V320l85-50 40 45 60-70 90 80v375zM860 700V350l90-100 60 60 65-110 125 80v420z"/><path d="M340 660V320h40v-60h160v60h40v340zM650 660V270h55v-50h100v50h50v390z"/></g>
+<g opacity=".45" fill="none" stroke="#75a5a0" stroke-width="15"><path d="M310 620V320h260v300M650 620V270h220v350"/><path d="M320 330l120-80 120 80M655 270l105-75 105 75"/></g>
+<path d="M0 750Q170 680 320 735T650 750T1200 720V900H0Z" fill="#0a3e4b"/><path d="M0 805Q300 720 600 805T1200 790V900H0Z" fill="#082b39"/>
+<g fill="url(#rock)"><path d="M0 900V630l90-120 100 100-15 290zM1200 900V590l-100-90-85 130 20 270z"/><ellipse cx="280" cy="850" rx="250" ry="70"/><ellipse cx="920" cy="850" rx="260" ry="65"/></g>
+<g fill="none" stroke-linecap="round"><path d="M70 900Q100 720 30 590M85 900Q180 750 140 600M1130 900Q1100 700 1190 570M1080 900Q1040 730 1090 620" stroke="#19aa8a" stroke-width="22"/><path d="M0 880Q130 740 180 850M1030 850Q1120 740 1200 830" stroke="#e457a8" stroke-width="26"/><path d="M0 825Q130 715 200 800M1000 805Q1130 700 1200 775" stroke="#ffad6a" stroke-width="16"/></g>
+<g fill="#ff8fb3"><circle cx="65" cy="745" r="12"/><circle cx="120" cy="710" r="10"/><circle cx="1120" cy="720" r="12"/><circle cx="1150" cy="770" r="9"/></g>
+<g opacity=".55" fill="#7ef6ff"><circle cx="180" cy="300" r="4"/><circle cx="240" cy="450" r="7"/><circle cx="1040" cy="410" r="5"/><circle cx="930" cy="220" r="3"/><circle cx="900" cy="520" r="6"/></g>
+</svg>
+<div class="rays"></div><div class="bubbles" id="bubbles"></div><div class="fishfield" id="fishfield"></div>
+<div class="menu">
+<section id="home" class="screen active" aria-label="Main menu">
+<div class="home-head"><div class="eyebrow">THE SUNKEN KINGDOM</div><h1><span>DON'T</span><span>OPEN IT</span></h1><p class="subtitle">One box. Many secrets. One survivor.</p></div>
+<div class="chest-wrap" aria-label="Ancient underwater treasure chest">
+<svg class="chest" viewBox="0 0 360 240" role="img" aria-label="Treasure chest" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="wood" x2="0" y2="1"><stop stop-color="#986138"/><stop offset="1" stop-color="#321e18"/></linearGradient><linearGradient id="gold" x2="1" y2="1"><stop stop-color="#fff3a4"/><stop offset=".45" stop-color="#c98c2d"/><stop offset="1" stop-color="#6e4213"/></linearGradient></defs><ellipse cx="180" cy="217" rx="151" ry="20" fill="#00132488"/><path d="M42 100Q48 21 180 21T318 100V142H42Z" fill="url(#wood)" stroke="#ad7b40" stroke-width="8"/><path d="M42 102Q48 21 180 21T318 102" fill="none" stroke="url(#gold)" stroke-width="17"/><path d="M56 100h248v109H56z" fill="url(#wood)" stroke="#d8a64b" stroke-width="9"/><path d="M62 137h238M62 176h238" stroke="#261b16" stroke-width="7"/><path d="M92 55v147M267 55v147" stroke="url(#gold)" stroke-width="18"/><path d="M49 101h262" stroke="url(#gold)" stroke-width="14"/><rect x="149" y="103" width="62" height="72" rx="8" fill="url(#gold)" stroke="#ffe99d" stroke-width="5"/><circle cx="180" cy="135" r="18" fill="#143a42" stroke="#fff0ad" stroke-width="5"/><path d="M180 123v24l9-8z" fill="#7ef9ff"/><g fill="#64caa1"><path d="M50 70Q18 40 26 115Q39 102 50 70M300 56Q339 30 330 98Q309 87 300 56M88 190q-50-15-42 22 29-4 42-22"/></g><g fill="#d9f9a2"><circle cx="67" cy="120" r="4"/><circle cx="286" cy="158" r="4"/><circle cx="107" cy="39" r="3"/></g></svg>
+</div>
+<div class="actions"><button class="btn primary" id="createBtn">CREATE LOBBY</button><button class="btn" id="joinBtn">JOIN LOBBY</button></div>
+<p class="small">2–10 PLAYERS · 134 STARTING COINS · NO ACCOUNT NEEDED</p>
+</section>
+<section id="create" class="screen" aria-label="Create lobby"><div class="badge">HOST A NEW GAME</div><h2>Create Lobby</h2><label class="field">YOUR NAME<input id="createName" maxlength="18" autocomplete="nickname" placeholder="Enter your name"></label><div class="actions"><button class="btn primary" id="createSubmit">CONTINUE</button></div><p class="message" id="createMessage" role="status"></p><button class="back" data-back>← BACK TO MENU</button></section>
+<section id="join" class="screen" aria-label="Join lobby"><div class="badge">JOIN YOUR FRIENDS</div><h2>Join Lobby</h2><label class="field">YOUR NAME<input id="joinName" maxlength="18" autocomplete="nickname" placeholder="Enter your name"></label><label class="field">6-CHARACTER LOBBY CODE<input id="joinCode" maxlength="6" autocapitalize="characters" placeholder="e.g. X7K9P2"></label><div class="actions"><button class="btn primary" id="joinSubmit">CONTINUE</button></div><p class="message" id="joinMessage" role="status"></p><button class="back" data-back>← BACK TO MENU</button></section>
+</div></main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));}
+$('createBtn').addEventListener('click',()=>show('create'));
+$('joinBtn').addEventListener('click',()=>show('join'));
+document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>show('home')));
+function validName(id){const name=$(id).value.trim();if(!name){$(id).focus();return null;}return name;}
+$('createSubmit').addEventListener('click',()=>{if(!validName('createName')){$('createMessage').textContent='Please enter your name.';return;}$('createMessage').textContent='Menu demo ready! Real lobby creation comes with Supabase.';});
+$('joinSubmit').addEventListener('click',()=>{if(!validName('joinName')){$('joinMessage').textContent='Please enter your name.';return;}if(!/^[A-Z0-9]{6}$/.test($('joinCode').value.trim().toUpperCase())){$('joinMessage').textContent='Enter a valid 6-character lobby code.';return;}$('joinMessage').textContent='Menu demo ready! Online joining comes with Supabase.';});
+$('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');});
+const bubbleLayer=$('bubbles');for(let i=0;i<28;i++){let b=document.createElement('span');b.className='bubble';let size=3+(i*13%15);b.style.cssText=`left:${(i*37+9)%100}%;width:${size}px;height:${size}px;animation-duration:${8+i%11}s;animation-delay:-${i*1.6}s;opacity:${.2+(i%5)*.1}`;bubbleLayer.appendChild(b);}
+const fishLayer=$('fishfield');const colors=['#ffcc58','#5ef4ff','#ff819e','#a6fc87','#d0a7ff'];for(let i=0;i<8;i++){let f=document.createElement('div');f.className='fish';f.style.cssText=`top:${12+(i*19)%65}%;width:${35+(i*13)%48}px;animation-duration:${19+i*4}s;animation-delay:-${i*6}s;opacity:${.35+(i%4)*.12}`;f.innerHTML=`<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg"><path d="M26 30L0 8V52Z" fill="${colors[i%5]}"/><ellipse cx="56" cy="30" rx="38" ry="23" fill="${colors[i%5]}"/><path d="M48 9L63 0L75 14M48 51L63 60L75 46" fill="${colors[i%5]}"/><circle cx="77" cy="24" r="5" fill="#092c44"/><circle cx="78" cy="23" r="2" fill="white"/></svg>`;fishLayer.appendChild(f);}
+</script>
+</body>
+</html>
