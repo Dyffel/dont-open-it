@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03121d">
+<title>DON'T OPEN IT — v0.9 Multiplayer</title>
+<style>
+:root{color-scheme:dark;--gold:#ffd27a;--cyan:#48d9ff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,Arial,sans-serif;background:#03121d;color:#fff}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.app{min-height:100vh;min-height:100dvh;position:relative;display:grid;place-items:center;isolation:isolate;overflow:hidden;background:#03121d}
+.app::before{content:"";position:absolute;inset:-45px;z-index:-1;background:linear-gradient(#00121b66,#00121b88),url('menu-art.png') center/cover no-repeat;filter:blur(22px) brightness(.48);transform:scale(1.05)}
+/* Portrait: extend the complete artwork edge-to-edge, including tall phone screens. */
+.portrait{position:relative;width:100vw;height:100dvh;flex:none;background:url('menu-art.png') center/100% 100% no-repeat;box-shadow:none}
+.hit{position:absolute;border:0;background:transparent;color:transparent;touch-action:manipulation;border-radius:12px}.hit:active{background:#ffffff24}
+.hit.create{left:18%;top:60.8%;width:64%;height:9%}.hit.join{left:18%;top:70.5%;width:64%;height:9.6%}.hit.sound{left:3.5%;top:2.3%;width:10%;height:7%}.hit.settings{right:3.5%;top:2.3%;width:10%;height:7%}
+/* Landscape: show the original painted logo AND chest, but crop before the painted buttons. */
+.landscape{display:none;width:min(1320px,96vw);height:min(88dvh,720px);gap:clamp(16px,3.5vw,56px);align-items:center;justify-content:center;padding:clamp(8px,1.6vw,24px)}
+.chest-frame{position:relative;flex:0 1 48%;min-width:0;max-width:calc(76dvh * 1.3);aspect-ratio:1.3;max-height:76dvh;overflow:hidden;border:2px solid #247a91;border-radius:22px;box-shadow:0 20px 60px #000b,0 0 30px #00d9ff12;background:#031b2b}
+/* Artwork is 2:3: a taller viewport and upper crop reveal logo + chest, not the lower painted buttons. */
+.chest-art{position:absolute;inset:0;background-image:url('menu-art.png');background-repeat:no-repeat;background-size:100% auto;background-position:center 17%}
+.chest-frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#00111b50,transparent 27%,transparent 65%,#00111bc9)}
+.side{flex:1 1 52%;min-width:0;max-width:520px;text-align:center;display:flex;flex-direction:column;align-items:stretch;gap:clamp(8px,2vh,20px)}
+.side h1{font-weight:1000;font-size:clamp(34px,4.8vw,76px);line-height:.94;letter-spacing:-.045em;text-shadow:0 5px 0 #321b0b,0 10px 20px #000;margin:0;color:#ffcd57}.side h1 span{display:block;color:#e9e5db}
+.side .tag{font-size:clamp(10px,1.15vw,15px);letter-spacing:.23em;color:#9fe7f2;margin:0 0 4px}
+.menu-button{width:100%;border-radius:16px;padding:clamp(12px,2vh,20px) 10px;font-weight:900;font-size:clamp(16px,2.1vw,28px);text-shadow:0 2px 2px #0008;box-shadow:0 7px 0 #000a,0 12px 20px #0008}
+.menu-button.gold{border:3px solid #ffedac;background:linear-gradient(#ffe87a,#eea800 47%,#b85d00);color:#241100}
+.menu-button.blue{border:3px solid #61efff;background:linear-gradient(#00c7ef,#0074b4 50%,#003b69);color:#fff}
+.small-actions{display:flex;justify-content:center;gap:14px}.small-actions button{border:1px solid #5bcfe5;background:#06263c;border-radius:11px;padding:9px 18px;color:#d7faff}
+.overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#000b;backdrop-filter:blur(9px);padding:18px max(18px,env(safe-area-inset-right)) 18px max(18px,env(safe-area-inset-left))}
+[hidden]{display:none!important}.dialog{position:relative;width:min(440px,100%);max-height:90dvh;overflow:auto;padding:clamp(20px,5vw,32px);border:2px solid #3ac7ee;border-radius:22px;background:linear-gradient(145deg,#0b3952,#03131f);box-shadow:0 20px 80px #000e;text-align:center}
+.dialog h2{font-family:Georgia,serif;color:#ffda79;font-size:clamp(28px,7vw,38px);margin:0 0 20px}.dialog label{display:block;text-align:left;color:#a9eaff;font-weight:800;letter-spacing:.06em;margin:12px 0 7px}.dialog input{display:block;width:100%;border:2px solid #3ac7ee;border-radius:11px;background:#001522;color:#fff;padding:13px;font-size:18px}.dialog .menu-button{margin-top:20px;font-size:19px;padding:13px}.back{margin-top:18px;background:none;color:#b2ecff;border:0;padding:10px}.notice{font-size:13px;color:#c3dbe4;line-height:1.5;min-height:20px}.close{position:absolute;top:9px;right:12px;border:0;background:none;color:#fff;font-size:27px}
+@media(orientation:landscape) and (min-width:600px){.portrait{display:none}.landscape{display:flex}}
+@media(orientation:landscape) and (max-height:450px){.landscape{height:96dvh;padding:4px;gap:18px}.chest-frame{max-height:84dvh;max-width:calc(84dvh * 1.3)}.side{gap:7px}.side h1{font-size:clamp(27px,4vw,48px)}.side .tag{font-size:10px}.menu-button{padding:7px 6px;border-width:2px}.small-actions button{padding:5px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* v0.9 additions: the original main menu CSS above is untouched. */
+.room-screen{position:fixed;inset:0;z-index:8;overflow:auto;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 20%,#13506a,#04111e 68%);}
+.room-card{width:min(680px,100%);border:2px solid #b68b36;border-radius:22px;padding:clamp(18px,4vw,36px);background:linear-gradient(155deg,#103b4c,#07131f);box-shadow:0 18px 70px #000d;text-align:center}
+.room-card h2{font-family:Georgia,serif;color:#ffdb80;font-size:clamp(25px,5vw,38px);margin:0 0 8px}.room-code{font-weight:1000;letter-spacing:.16em;font-size:clamp(36px,9vw,64px);color:#ffe18b;margin:8px 0}.room-status{color:#99e9ff}.room-players{list-style:none;padding:0;display:grid;gap:8px;text-align:left;margin:20px 0}.room-players li{padding:13px 15px;border:1px solid #36718a;border-radius:12px;background:#082637;display:flex;justify-content:space-between;gap:10px}.room-players .crown{color:#ffd27a}.room-actions{display:grid;gap:12px}.room-actions button{font-size:18px}.muted{color:#b3cdd8;font-size:14px;line-height:1.5}.danger{background:#3a1622;border:1px solid #d96a7a;border-radius:10px;color:#fff;padding:13px}.room-card .message{min-height:22px;color:#ffd27a}.busy{opacity:.65;pointer-events:none}
+@media(min-width:620px){.room-actions{grid-template-columns:1fr 1fr}.room-actions .wide{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="app">
+ <main class="portrait" aria-label="DON'T OPEN IT main menu">
+  <button class="hit sound" aria-label="Sound settings" onclick="openMenu('settings')"></button>
+  <button class="hit settings" aria-label="Settings" onclick="openMenu('settings')"></button>
+  <button class="hit create" aria-label="Create lobby" onclick="openMenu('create')"></button>
+  <button class="hit join" aria-label="Join lobby" onclick="openMenu('join')"></button>
+ </main>
+ <main class="landscape" aria-label="DON'T OPEN IT landscape main menu">
+  <div class="chest-frame" role="img" aria-label="Mysterious glowing treasure chest in a dark temple"><div class="chest-art"></div></div>
+  <section class="side"><h1><span>DON'T</span>OPEN IT</h1><p class="tag">EVERY BOX HAS A SECRET</p>
+   <button class="menu-button gold" onclick="openMenu('create')">CREATE LOBBY</button>
+   <button class="menu-button blue" onclick="openMenu('join')">JOIN LOBBY</button>
+   <div class="small-actions"><button onclick="openMenu('settings')">Settings</button></div>
+  </section>
+ </main>
+</div>
+<div class="overlay" id="overlay" hidden><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading"><button class="close" aria-label="Close" onclick="closeMenu()">×</button><h2 id="heading"></h2><form id="lobbyForm"><div id="inputs"></div><button class="menu-button gold" type="submit">CONTINUE</button></form><p class="notice" id="notice"></p><button class="back" onclick="closeMenu()">← BACK TO MENU</button></section></div>
+
+<section class="room-screen" id="roomScreen" hidden aria-label="Multiplayer waiting room">
+ <div class="room-card">
+  <h2 id="roomTitle">WAITING ROOM</h2>
+  <p class="room-status" id="roomStatus">Waiting for players…</p>
+  <div class="muted">SHARE THIS ROOM CODE</div>
+  <div class="room-code" id="roomCode">------</div>
+  <button class="back" id="copyCode" type="button">📋 COPY CODE</button>
+  <p class="muted" id="playerTotal">Players: 0/10</p>
+  <ul class="room-players" id="playerList"></ul>
+  <p class="message" id="roomMessage" role="status"></p>
+  <div class="room-actions">
+   <button class="menu-button gold wide" id="startGame" type="button" hidden>START GAME</button>
+   <button class="menu-button blue" id="refreshRoom" type="button">REFRESH</button>
+   <button class="danger" id="leaveRoom" type="button">LEAVE ROOM</button>
+  </div>
+ </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+const SUPABASE_URL='https://aseojgkjrrnthyisvbzh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8zkaa11lk0G-CrHv44al_A_aOi10qXP';
+const overlay=document.getElementById('overlay'),form=document.getElementById('lobbyForm'),inputs=document.getElementById('inputs'),notice=document.getElementById('notice');
+const roomScreen=document.getElementById('roomScreen'),roomMessage=document.getElementById('roomMessage');
+let mode='create',previousFocus=null,client=null,currentRoom=null,refreshTimer=null,working=false;
+try { if(!window.supabase)throw Error('Supabase library failed to load. Check your connection.');client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}}); } catch(e){console.error(e);}
+function errorText(e){return e?.message||String(e)}
+function setBusy(v){working=v;form.querySelector('button[type=submit]').disabled=v;form.classList.toggle('busy',v)}
+async function ensureAuth(){if(!client)throw Error('Online connection unavailable. Reload the page.');let {data,error}=await client.auth.getSession();if(error)throw error;if(data.session)return data.session;const result=await client.auth.signInAnonymously();if(result.error)throw result.error;return result.data.session}
+function openMenu(type){mode=type;previousFocus=document.activeElement;document.getElementById('heading').textContent=type==='create'?'Create Lobby':type==='join'?'Join Lobby':'Settings';form.hidden=type==='settings';inputs.replaceChildren();if(type!=='settings'){const label=document.createElement('label');label.htmlFor='nickname';label.textContent='YOUR NAME';const name=document.createElement('input');name.id='nickname';name.name='name';name.maxLength=20;name.required=true;name.autocomplete='nickname';name.placeholder='Enter your name';name.value=localStorage.getItem('doi-nickname')||'';inputs.append(label,name);if(type==='join'){const codeLabel=document.createElement('label');codeLabel.htmlFor='code';codeLabel.textContent='LOBBY CODE';const code=document.createElement('input');code.id='code';code.name='code';code.maxLength=6;code.required=true;code.autocapitalize='characters';code.placeholder='6-character code';inputs.append(codeLabel,code)}}notice.textContent=type==='settings'?'Audio settings are coming in a future version.':'Online multiplayer • Internet connection required';overlay.hidden=false;setTimeout(()=>{(inputs.querySelector('input')||overlay.querySelector('.close')).focus()},50)}
+function closeMenu(){if(working)return;overlay.hidden=true;previousFocus?.focus()}
+form.addEventListener('submit',async e=>{e.preventDefault();if(working)return;const data=new FormData(form),name=String(data.get('name')||'').trim();if(!name)return;setBusy(true);notice.textContent='Connecting to multiplayer…';try{const session=await ensureAuth();localStorage.setItem('doi-nickname',name);let result;if(mode==='create'){result=await client.rpc('create_game_lobby',{p_max_players:10});}else{const code=String(data.get('code')||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Enter a valid six-character room code.');result=await client.rpc('join_game_lobby',{p_code:code,p_nickname:name});}if(result.error)throw result.error;const lobby=result.data?.[0];if(!lobby?.lobby_id)throw Error('Room was not returned by the server.');currentRoom={id:lobby.lobby_id,code:lobby.lobby_code,name,userId:session.user.id};overlay.hidden=true;roomScreen.hidden=false;await loadRoom();startPolling();}catch(err){notice.textContent='⚠️ '+errorText(err);console.error(err)}finally{setBusy(false)}});
+async function loadRoom(){if(!currentRoom||!client)return;const {data,error}=await client.rpc('get_my_lobby',{p_lobby_id:currentRoom.id});if(error){roomMessage.textContent='⚠️ '+errorText(error);return;}if(!data?.length){roomMessage.textContent='Room is unavailable.';return;}const first=data[0],isHost=first.host_id===currentRoom.userId;document.getElementById('roomCode').textContent=first.lobby_code;document.getElementById('roomStatus').textContent=first.lobby_status==='waiting'?'⏳ Waiting for players…':first.lobby_status==='playing'?'🎮 Game started!':'Game finished';document.getElementById('playerTotal').textContent=`Players: ${data.length}/${first.max_players}`;const list=document.getElementById('playerList');list.replaceChildren();for(const player of data){const li=document.createElement('li'),name=document.createElement('span'),badge=document.createElement('span');const own=player.player_id===currentRoom.userId;name.textContent=(own&&player.nickname==='Host'?currentRoom.name:player.nickname)+(own?' (you)':'');badge.textContent=player.player_id===first.host_id?'👑 HOST':'🟢';badge.className='crown';li.append(name,badge);list.append(li)}document.getElementById('startGame').hidden=!isHost||first.lobby_status!=='waiting';document.getElementById('startGame').disabled=data.length<2;document.getElementById('roomTitle').textContent=first.lobby_status==='playing'?'GAME STARTED':'WAITING ROOM';roomMessage.textContent=first.lobby_status==='playing'?'Match started! Gameplay is coming in a future version.':isHost&&data.length<2?'Invite at least one friend to start.':'';}
+function startPolling(){clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(currentRoom&&!document.hidden)loadRoom()},2500)}
+function exitRoom(){clearInterval(refreshTimer);currentRoom=null;roomScreen.hidden=true;roomMessage.textContent=''}
+document.getElementById('startGame').addEventListener('click',async()=>{if(!currentRoom)return;roomMessage.textContent='Starting…';const {error}=await client.rpc('start_game_lobby',{p_lobby_id:currentRoom.id});if(error){roomMessage.textContent='⚠️ '+errorText(error);return;}await loadRoom()});
+document.getElementById('leaveRoom').addEventListener('click',async()=>{if(!currentRoom)return;const {error}=await client.rpc('leave_game_lobby',{p_lobby_id:currentRoom.id});if(error){roomMessage.textContent='⚠️ '+errorText(error);return;}exitRoom()});
+document.getElementById('refreshRoom').addEventListener('click',loadRoom);
+document.getElementById('copyCode').addEventListener('click',async()=>{if(!currentRoom)return;try{await navigator.clipboard.writeText(currentRoom.code);roomMessage.textContent='Room code copied!'}catch{roomMessage.textContent='Share this code: '+currentRoom.code}});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)closeMenu()});
+</script>
+</body>
+</html>
