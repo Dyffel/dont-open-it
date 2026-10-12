@@ -9,9 +9,9 @@
 :root{color-scheme:dark;--gold:#ffd27a;--cyan:#48d9ff}
 *{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,Arial,sans-serif;background:#03121d;color:white}body{overflow-x:hidden}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .app{min-height:100svh;min-height:100dvh;display:flex;align-items:center;justify-content:center;position:relative;isolation:isolate;overflow:hidden}
-.app::before{content:"";position:absolute;inset:-35px;z-index:-2;background:linear-gradient(#00121b55,#00121b77),url('menu-art-v06.png') center/cover;filter:blur(26px) brightness(.43);transform:scale(1.06)}
+.app::before{content:"";position:absolute;inset:-35px;z-index:-2;background:linear-gradient(#00121b55,#00121b77),url('menu-art.png') center/cover;filter:blur(26px) brightness(.43);transform:scale(1.06)}
 /* Portrait: preserve EVERY pixel of the original art. The transparent buttons sit over the painted buttons. */
-.portrait{position:relative;width:min(100vw,calc(100dvh * 2 / 3));aspect-ratio:2/3;background:url('menu-art-v06.png') center/100% 100% no-repeat;box-shadow:0 0 65px #0008;flex-shrink:0}
+.portrait{position:relative;width:min(100vw,calc(100dvh * 2 / 3));aspect-ratio:2/3;background:url('menu-art.png') center/100% 100% no-repeat;box-shadow:0 0 65px #0008;flex-shrink:0}
 .hit{position:absolute;border:0;background:transparent;color:transparent;touch-action:manipulation;border-radius:12px}.hit:active{background:#ffffff24}.hit.create{left:18%;top:60.8%;width:64%;height:9.0%}.hit.join{left:18%;top:70.5%;width:64%;height:9.6%}.hit.sound{left:3.5%;top:2.3%;width:10%;height:7%}.hit.settings{right:3.5%;top:2.3%;width:10%;height:7%}
 /* Landscape: actual separate composition, NOT stretched/repeated portrait art. */
 .landscape{display:none;width:min(1320px,96vw);min-height:min(86dvh,680px);gap:clamp(18px,4vw,70px);align-items:center;justify-content:center;padding:clamp(12px,2vw,30px)}
