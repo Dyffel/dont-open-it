@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03121d">
+<title>DON'T OPEN IT — v0.8</title>
+<style>
+:root{color-scheme:dark;--gold:#ffd27a;--cyan:#48d9ff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,Arial,sans-serif;background:#03121d;color:#fff}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.app{min-height:100vh;min-height:100dvh;position:relative;display:grid;place-items:center;isolation:isolate;overflow:hidden;background:#03121d}
+.app::before{content:"";position:absolute;inset:-45px;z-index:-1;background:linear-gradient(#00121b66,#00121b88),url('menu-art.png') center/cover no-repeat;filter:blur(22px) brightness(.48);transform:scale(1.05)}
+/* Portrait: extend the complete artwork edge-to-edge, including tall phone screens. */
+.portrait{position:relative;width:100vw;height:100dvh;flex:none;background:url('menu-art.png') center/100% 100% no-repeat;box-shadow:none}
+.hit{position:absolute;border:0;background:transparent;color:transparent;touch-action:manipulation;border-radius:12px}.hit:active{background:#ffffff24}
+.hit.create{left:18%;top:60.8%;width:64%;height:9%}.hit.join{left:18%;top:70.5%;width:64%;height:9.6%}.hit.sound{left:3.5%;top:2.3%;width:10%;height:7%}.hit.settings{right:3.5%;top:2.3%;width:10%;height:7%}
+/* Landscape: show the original painted logo AND chest, but crop before the painted buttons. */
+.landscape{display:none;width:min(1320px,96vw);height:min(88dvh,720px);gap:clamp(16px,3.5vw,56px);align-items:center;justify-content:center;padding:clamp(8px,1.6vw,24px)}
+.chest-frame{position:relative;flex:0 1 48%;min-width:0;max-width:calc(76dvh * 1.3);aspect-ratio:1.3;max-height:76dvh;overflow:hidden;border:2px solid #247a91;border-radius:22px;box-shadow:0 20px 60px #000b,0 0 30px #00d9ff12;background:#031b2b}
+/* Artwork is 2:3: a taller viewport and upper crop reveal logo + chest, not the lower painted buttons. */
+.chest-art{position:absolute;inset:0;background-image:url('menu-art.png');background-repeat:no-repeat;background-size:100% auto;background-position:center 17%}
+.chest-frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#00111b50,transparent 27%,transparent 65%,#00111bc9)}
+.side{flex:1 1 52%;min-width:0;max-width:520px;text-align:center;display:flex;flex-direction:column;align-items:stretch;gap:clamp(8px,2vh,20px)}
+.side h1{font-weight:1000;font-size:clamp(34px,4.8vw,76px);line-height:.94;letter-spacing:-.045em;text-shadow:0 5px 0 #321b0b,0 10px 20px #000;margin:0;color:#ffcd57}.side h1 span{display:block;color:#e9e5db}
+.side .tag{font-size:clamp(10px,1.15vw,15px);letter-spacing:.23em;color:#9fe7f2;margin:0 0 4px}
+.menu-button{width:100%;border-radius:16px;padding:clamp(12px,2vh,20px) 10px;font-weight:900;font-size:clamp(16px,2.1vw,28px);text-shadow:0 2px 2px #0008;box-shadow:0 7px 0 #000a,0 12px 20px #0008}
+.menu-button.gold{border:3px solid #ffedac;background:linear-gradient(#ffe87a,#eea800 47%,#b85d00);color:#241100}
+.menu-button.blue{border:3px solid #61efff;background:linear-gradient(#00c7ef,#0074b4 50%,#003b69);color:#fff}
+.small-actions{display:flex;justify-content:center;gap:14px}.small-actions button{border:1px solid #5bcfe5;background:#06263c;border-radius:11px;padding:9px 18px;color:#d7faff}
+.overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#000b;backdrop-filter:blur(9px);padding:18px max(18px,env(safe-area-inset-right)) 18px max(18px,env(safe-area-inset-left))}
+[hidden]{display:none!important}.dialog{position:relative;width:min(440px,100%);max-height:90dvh;overflow:auto;padding:clamp(20px,5vw,32px);border:2px solid #3ac7ee;border-radius:22px;background:linear-gradient(145deg,#0b3952,#03131f);box-shadow:0 20px 80px #000e;text-align:center}
+.dialog h2{font-family:Georgia,serif;color:#ffda79;font-size:clamp(28px,7vw,38px);margin:0 0 20px}.dialog label{display:block;text-align:left;color:#a9eaff;font-weight:800;letter-spacing:.06em;margin:12px 0 7px}.dialog input{display:block;width:100%;border:2px solid #3ac7ee;border-radius:11px;background:#001522;color:#fff;padding:13px;font-size:18px}.dialog .menu-button{margin-top:20px;font-size:19px;padding:13px}.back{margin-top:18px;background:none;color:#b2ecff;border:0;padding:10px}.notice{font-size:13px;color:#c3dbe4;line-height:1.5;min-height:20px}.close{position:absolute;top:9px;right:12px;border:0;background:none;color:#fff;font-size:27px}
+@media(orientation:landscape) and (min-width:600px){.portrait{display:none}.landscape{display:flex}}
+@media(orientation:landscape) and (max-height:450px){.landscape{height:96dvh;padding:4px;gap:18px}.chest-frame{max-height:84dvh;max-width:calc(84dvh * 1.3)}.side{gap:7px}.side h1{font-size:clamp(27px,4vw,48px)}.side .tag{font-size:10px}.menu-button{padding:7px 6px;border-width:2px}.small-actions button{padding:5px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="app">
+ <main class="portrait" aria-label="DON'T OPEN IT main menu">
+  <button class="hit sound" aria-label="Sound settings" onclick="openMenu('settings')"></button>
+  <button class="hit settings" aria-label="Settings" onclick="openMenu('settings')"></button>
+  <button class="hit create" aria-label="Create lobby" onclick="openMenu('create')"></button>
+  <button class="hit join" aria-label="Join lobby" onclick="openMenu('join')"></button>
+ </main>
+ <main class="landscape" aria-label="DON'T OPEN IT landscape main menu">
+  <div class="chest-frame" role="img" aria-label="Mysterious glowing treasure chest in a dark temple"><div class="chest-art"></div></div>
+  <section class="side"><h1><span>DON'T</span>OPEN IT</h1><p class="tag">EVERY BOX HAS A SECRET</p>
+   <button class="menu-button gold" onclick="openMenu('create')">CREATE LOBBY</button>
+   <button class="menu-button blue" onclick="openMenu('join')">JOIN LOBBY</button>
+   <div class="small-actions"><button onclick="openMenu('settings')">Settings</button></div>
+  </section>
+ </main>
+</div>
+<div class="overlay" id="overlay" hidden><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading"><button class="close" aria-label="Close" onclick="closeMenu()">×</button><h2 id="heading"></h2><form id="lobbyForm"><div id="inputs"></div><button class="menu-button gold" type="submit">CONTINUE</button></form><p class="notice" id="notice"></p><button class="back" onclick="closeMenu()">← BACK TO MENU</button></section></div>
+<script>
+'use strict';
+const overlay=document.getElementById('overlay'),form=document.getElementById('lobbyForm'),inputs=document.getElementById('inputs'),notice=document.getElementById('notice');let mode='create',previousFocus=null;
+function openMenu(type){mode=type;previousFocus=document.activeElement;document.getElementById('heading').textContent=type==='create'?'Create Lobby':type==='join'?'Join Lobby':'Settings';form.hidden=type==='settings';inputs.replaceChildren();if(type!=='settings'){const label=document.createElement('label');label.htmlFor='nickname';label.textContent='YOUR NAME';const name=document.createElement('input');name.id='nickname';name.name='name';name.maxLength=20;name.required=true;name.autocomplete='nickname';name.placeholder='Enter your name';inputs.append(label,name);if(type==='join'){const codeLabel=document.createElement('label');codeLabel.htmlFor='code';codeLabel.textContent='LOBBY CODE';const code=document.createElement('input');code.id='code';code.name='code';code.maxLength=8;code.required=true;code.autocapitalize='characters';code.placeholder='Enter lobby code';inputs.append(codeLabel,code)}}notice.textContent=type==='settings'?'Menu preview: audio and multiplayer are not connected yet.':'Visual prototype only. Multiplayer lobby creation and joining will be connected to Supabase later.';overlay.hidden=false;setTimeout(()=>{(inputs.querySelector('input')||overlay.querySelector('.close')).focus()},50)}
+function closeMenu(){overlay.hidden=true;previousFocus?.focus()}
+form.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(form);const name=String(data.get('name')||'').trim();if(!name)return;notice.textContent=`Hi ${name}! This menu is ready, but online ${mode==='create'?'lobby creation':'lobby joining'} isn't connected yet.`});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)closeMenu()});
+</script>
+</body>
+</html>
