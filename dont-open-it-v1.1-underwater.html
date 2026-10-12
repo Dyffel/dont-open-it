@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03121d">
+<title>DON'T OPEN IT — v1.1 Underwater</title>
+<style>
+:root{color-scheme:dark;--gold:#ffd27a;--cyan:#48d9ff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,Arial,sans-serif;background:#03121d;color:#fff}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.app{min-height:100vh;min-height:100dvh;position:relative;display:grid;place-items:center;isolation:isolate;overflow:hidden;background:#03121d}
+.app::before{content:"";position:absolute;inset:-45px;z-index:-1;background:linear-gradient(#00121b66,#00121b88),url('menu-art.png') center/cover no-repeat;filter:blur(22px) brightness(.48);transform:scale(1.05)}
+/* Portrait: extend the complete artwork edge-to-edge, including tall phone screens. */
+.portrait{position:relative;width:100vw;height:100dvh;flex:none;background:url('menu-art.png') center/100% 100% no-repeat;box-shadow:none}
+.hit{position:absolute;border:0;background:transparent;color:transparent;touch-action:manipulation;border-radius:12px}.hit:active{background:#ffffff24}
+.hit.create{left:18%;top:60.8%;width:64%;height:9%}.hit.join{left:18%;top:70.5%;width:64%;height:9.6%}.hit.sound{left:3.5%;top:2.3%;width:10%;height:7%}.hit.settings{right:3.5%;top:2.3%;width:10%;height:7%}
+/* Landscape: show the original painted logo AND chest, but crop before the painted buttons. */
+.landscape{display:none;width:min(1320px,96vw);height:min(88dvh,720px);gap:clamp(16px,3.5vw,56px);align-items:center;justify-content:center;padding:clamp(8px,1.6vw,24px)}
+.chest-frame{position:relative;flex:0 1 48%;min-width:0;max-width:calc(76dvh * 1.3);aspect-ratio:1.3;max-height:76dvh;overflow:hidden;border:2px solid #247a91;border-radius:22px;box-shadow:0 20px 60px #000b,0 0 30px #00d9ff12;background:#031b2b}
+/* Artwork is 2:3: a taller viewport and upper crop reveal logo + chest, not the lower painted buttons. */
+.chest-art{position:absolute;inset:0;background-image:url('menu-art.png');background-repeat:no-repeat;background-size:100% auto;background-position:center 17%}
+.chest-frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#00111b50,transparent 27%,transparent 65%,#00111bc9)}
+.side{flex:1 1 52%;min-width:0;max-width:520px;text-align:center;display:flex;flex-direction:column;align-items:stretch;gap:clamp(8px,2vh,20px)}
+.side h1{font-weight:1000;font-size:clamp(34px,4.8vw,76px);line-height:.94;letter-spacing:-.045em;text-shadow:0 5px 0 #321b0b,0 10px 20px #000;margin:0;color:#ffcd57}.side h1 span{display:block;color:#e9e5db}
+.side .tag{font-size:clamp(10px,1.15vw,15px);letter-spacing:.23em;color:#9fe7f2;margin:0 0 4px}
+.menu-button{width:100%;border-radius:16px;padding:clamp(12px,2vh,20px) 10px;font-weight:900;font-size:clamp(16px,2.1vw,28px);text-shadow:0 2px 2px #0008;box-shadow:0 7px 0 #000a,0 12px 20px #0008}
+.menu-button.gold{border:3px solid #ffedac;background:linear-gradient(#ffe87a,#eea800 47%,#b85d00);color:#241100}
+.menu-button.blue{border:3px solid #61efff;background:linear-gradient(#00c7ef,#0074b4 50%,#003b69);color:#fff}
+.small-actions{display:flex;justify-content:center;gap:14px}.small-actions button{border:1px solid #5bcfe5;background:#06263c;border-radius:11px;padding:9px 18px;color:#d7faff}
+.overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#000b;backdrop-filter:blur(9px);padding:18px max(18px,env(safe-area-inset-right)) 18px max(18px,env(safe-area-inset-left))}
+[hidden]{display:none!important}.dialog{position:relative;width:min(440px,100%);max-height:90dvh;overflow:auto;padding:clamp(20px,5vw,32px);border:2px solid #3ac7ee;border-radius:22px;background:linear-gradient(145deg,#0b3952,#03131f);box-shadow:0 20px 80px #000e;text-align:center}
+.dialog h2{font-family:Georgia,serif;color:#ffda79;font-size:clamp(28px,7vw,38px);margin:0 0 20px}.dialog label{display:block;text-align:left;color:#a9eaff;font-weight:800;letter-spacing:.06em;margin:12px 0 7px}.dialog input{display:block;width:100%;border:2px solid #3ac7ee;border-radius:11px;background:#001522;color:#fff;padding:13px;font-size:18px}.dialog .menu-button{margin-top:20px;font-size:19px;padding:13px}.back{margin-top:18px;background:none;color:#b2ecff;border:0;padding:10px}.notice{font-size:13px;color:#c3dbe4;line-height:1.5;min-height:20px}.close{position:absolute;top:9px;right:12px;border:0;background:none;color:#fff;font-size:27px}
+@media(orientation:landscape) and (min-width:600px){.portrait{display:none}.landscape{display:flex}}
+@media(orientation:landscape) and (max-height:450px){.landscape{height:96dvh;padding:4px;gap:18px}.chest-frame{max-height:84dvh;max-width:calc(84dvh * 1.3)}.side{gap:7px}.side h1{font-size:clamp(27px,4vw,48px)}.side .tag{font-size:10px}.menu-button{padding:7px 6px;border-width:2px}.small-actions button{padding:5px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* v0.9 additions: the original main menu CSS above is untouched. */
+.room-screen{position:fixed;inset:0;z-index:8;overflow:auto;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 20%,#13506a,#04111e 68%);}
+.room-card{width:min(680px,100%);border:2px solid #b68b36;border-radius:22px;padding:clamp(18px,4vw,36px);background:linear-gradient(155deg,#103b4c,#07131f);box-shadow:0 18px 70px #000d;text-align:center}
+.room-card h2{font-family:Georgia,serif;color:#ffdb80;font-size:clamp(25px,5vw,38px);margin:0 0 8px}.room-code{font-weight:1000;letter-spacing:.16em;font-size:clamp(36px,9vw,64px);color:#ffe18b;margin:8px 0}.room-status{color:#99e9ff}.room-players{list-style:none;padding:0;display:grid;gap:8px;text-align:left;margin:20px 0}.room-players li{padding:13px 15px;border:1px solid #36718a;border-radius:12px;background:#082637;display:flex;justify-content:space-between;gap:10px}.room-players .crown{color:#ffd27a}.room-actions{display:grid;gap:12px}.room-actions button{font-size:18px}.muted{color:#b3cdd8;font-size:14px;line-height:1.5}.danger{background:#3a1622;border:1px solid #d96a7a;border-radius:10px;color:#fff;padding:13px}.room-card .message{min-height:22px;color:#ffd27a}.busy{opacity:.65;pointer-events:none}
+@media(min-width:620px){.room-actions{grid-template-columns:1fr 1fr}.room-actions .wide{grid-column:1/-1}}
+/* DON'T OPEN IT v1.1 — full-screen cinematic underwater tabletop.
+   The v0.8 main menu above is preserved without redesign. */
+.ocean-game{position:fixed;inset:0;z-index:9;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;isolation:isolate;background:#001923;color:#fff;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);font-family:system-ui,-apple-system,Arial,sans-serif}
+.ocean-game::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 14%,#147ca4 0%,#034760 35%,#00141e 100%);z-index:-1}
+.game-top{position:relative;z-index:5;display:flex;align-items:center;gap:clamp(5px,1.2vw,17px);padding:7px clamp(8px,2vw,22px);min-height:55px;background:linear-gradient(180deg,#031720f7,#052534df);border-bottom:2px solid #31b5d66e;box-shadow:0 4px 24px #001a28a8}
+.game-logo{font-size:clamp(15px,2.4vw,29px);font-weight:1000;letter-spacing:-.05em;line-height:.9;color:#ffe19a;text-shadow:0 2px 0 #5d2b00,0 0 13px #ffe49b70;white-space:nowrap;margin-right:auto}.game-logo b{color:#fff}.game-logo span{display:block;font-size:9px;letter-spacing:.23em;color:#a8f2ff;margin-top:5px;text-shadow:none;font-weight:800}
+.game-stat{flex:none;min-width:54px;text-align:center;padding:3px 7px;border:1px solid #71dbe266;background:#0b3448c4;border-radius:8px}.game-stat small{display:block;text-transform:uppercase;font-size:9px;letter-spacing:.11em;color:#b8ecf9}.game-stat strong{color:#ffe59b;font-size:clamp(14px,2vw,24px);line-height:1.15;display:block}.game-stat.danger-time strong{color:#ff6d73;animation:timerBlink .5s alternate infinite}@keyframes timerBlink{to{opacity:.5}}
+.game-mini{border:1px solid #5cc7d4a6;background:#0e3847;color:#d9f9fd;border-radius:9px;padding:9px;min-width:36px;flex:none}
+.arena{position:relative;overflow:hidden;min-height:0;isolation:isolate;background:#00344b}
+.arena-art{position:absolute;width:100%;height:100%;inset:0;z-index:-2}
+.arena::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#011c3690 0%,transparent 26%,#001d2c17 57%,#0010198a 100%);pointer-events:none;z-index:-1}
+.arena::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 60px #001623bc;pointer-events:none}
+.arena-title{position:absolute;top:7px;left:50%;transform:translateX(-50%);white-space:nowrap;font:900 clamp(11px,1.75vw,21px) Georgia,serif;color:#ffe8aa;text-shadow:0 3px 7px #001,0 0 16px #001;letter-spacing:.1em;z-index:2;pointer-events:none}
+.arena-table{position:absolute;left:50%;top:63%;width:min(84%,780px);height:36%;transform:translate(-50%,-4%);background:radial-gradient(ellipse at 50% 45%,#0b5c67 5%,#1a6c77 22%,#105065 33%,#092f42 60%,transparent 73%);border-radius:50%;filter:drop-shadow(0 19px 13px #001323c7);z-index:0;pointer-events:none}
+.arena-table::after{content:"";position:absolute;inset:24% 13%;border:6px solid #a99356a1;border-radius:50%;box-shadow:inset 0 0 16px #69e4db55,0 0 16px #42d6b833}
+.under-chest{position:absolute;left:50%;top:51%;transform:translate(-50%,-48%);width:min(56%,510px);max-height:71%;aspect-ratio: 600 / 420;z-index:1;filter:drop-shadow(0 15px 11px #00121dd9);pointer-events:none;transition:filter .3s}
+.under-chest svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 0 17px #73fafa4f)}
+.under-chest .lid{transform-origin:50% 63%;transition:transform .65s cubic-bezier(.2,.8,.2,1)}
+.under-chest.opened .lid{transform:translateY(-65px) rotate(-8deg)}
+.under-chest.jackpot{animation:goldFlash 1.4s ease-in-out}.under-chest.bomb,.under-chest.disaster{animation:chestShake .5s ease-in-out}.under-chest.treasure{animation:goldFlash 1s ease-in-out}
+@keyframes goldFlash{40%{filter:drop-shadow(0 0 60px #ffe15e);transform:translate(-50%,-48%) scale(1.06)}}
+@keyframes chestShake{20%{transform:translate(-52%,-48%) rotate(-2deg)}45%{transform:translate(-48%,-48%) rotate(2deg)}70%{transform:translate(-51%,-48%) rotate(-1deg)}}
+.seats{position:absolute;left:5%;right:5%;display:flex;align-items:stretch;justify-content:center;gap:clamp(3px,.8vw,12px);z-index:3;pointer-events:none}.seats.top{top:8%}.seats.bottom{bottom:4%}
+.seat{pointer-events:auto;min-width:0;width:clamp(48px,16%,150px);max-width:150px;padding:5px 5px 4px;background:linear-gradient(#123348ee,#041925eb);border:1px solid #68b8b5bd;border-radius:9px;box-shadow:0 5px 15px #001c2e99,inset 0 1px 0 #d8ffff1f;text-align:center;position:relative}
+.seat.active{border-color:#ffde6f;box-shadow:0 0 15px #ffe48a7d,0 0 0 1px #ffe07d,inset 0 0 12px #efc35a33;background:linear-gradient(#455a3bd9,#1b322bbf)}
+.seat.dead{filter:grayscale(1);opacity:.42}
+.seat-avatar{display:inline-grid;place-items:center;background:linear-gradient(140deg,var(--avatar, #176e8b),#06172b);width:clamp(19px,3.3vh,36px);height:clamp(19px,3.3vh,36px);border:2px solid #ffe6a17a;border-radius:50%;font-size:clamp(10px,1.6vh,15px);font-weight:900;color:#fff;box-shadow:0 0 8px #40f9fc52}
+.seat-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:900;font-size:clamp(9px,1.1vw,15px);line-height:1.2;padding-top:2px}
+.seat-coins{font-size:clamp(10px,1.2vw,15px);font-weight:1000;color:#ffdc7c;line-height:1.25;white-space:nowrap}.seat-icon{position:absolute;right:2px;top:0;font-size:11px}.seat-shield{color:#8dffff;margin-left:1px}
+.sea-fish{position:absolute;display:block;top:38%;left:-40px;z-index:0;opacity:.78;animation:fishDrift 17s linear infinite;pointer-events:none}.sea-fish.fish2{top:66%;animation-duration:22s;animation-delay:-11s;font-size:14px;opacity:.5}@keyframes fishDrift{to{transform:translateX(calc(100vw + 70px))}}
+.outcome-burst{position:absolute;inset:0;z-index:4;pointer-events:none;display:grid;place-items:center;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at center,#fce97946,transparent 66%)}
+.outcome-burst.show{opacity:1;animation:burstGlow 1.8s ease-out}@keyframes burstGlow{0%{filter:brightness(2)}60%{filter:brightness(1)}}
+.outcome-burst.bad{background:radial-gradient(ellipse at center,#e7365359,transparent 70%)}
+.outcome-banner{width:min(90%,530px);padding:15px 17px;border:2px solid #ffe394;border-radius:15px;background:linear-gradient(145deg,#17384de8,#061823f5);box-shadow:0 16px 50px #001d28db,0 0 45px #ffce6699;text-align:center;color:#ffe49d;font-size:clamp(16px,3.4vw,32px);font-weight:1000;text-shadow:0 3px 5px #000;transform:scale(.88);animation:bannerPop 1.8s ease-out}@keyframes bannerPop{18%{transform:scale(1.05)}60%{transform:scale(1)}100%{transform:scale(.97)}}
+.outcome-banner small{display:block;font-size:clamp(11px,1.7vw,17px);color:#eefcff;margin-top:7px;line-height:1.4}
+.control-dock{position:relative;z-index:5;padding:5px clamp(7px,2vw,18px) max(6px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#092c3fe8,#021522fc);border-top:2px solid #26a9c6a3;box-shadow:0 -9px 29px #00121b98}
+.info-line{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:29px;margin-bottom:5px}
+.turn-callout{font-size:clamp(11px,1.5vw,18px);font-weight:900;color:#ffe398;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.turn-callout.mine{color:#77f3ae}.round-rule{color:#bdeaf5;font-size:10px;white-space:nowrap}
+.event-line{min-width:0;flex:1;color:#d5f6ff;font-size:clamp(10px,1.2vw,14px);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(5px,.65vw,10px)}
+.action{grid-column:span 1;min-width:0;min-height:clamp(46px,7vh,74px);border:2px solid #ffffff75;border-radius:11px;box-shadow:0 4px 0 #001017,inset 0 2px 8px #ffffff38;color:#fff;font-size:clamp(11px,1.3vw,18px);font-weight:1000;text-shadow:0 2px 3px #001c20;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;padding:4px 3px;transition:filter .1s,transform .1s}
+.action .aicon{font-size:clamp(18px,2.3vw,28px);line-height:1}.action small{font-size:clamp(8px,1vw,12px);color:#eaf8ff;opacity:.92;font-weight:800}.action.open{background:linear-gradient(#f8b231,#a45a08)}.action.inspect{background:linear-gradient(#12bfff,#065596)}.action.shield{background:linear-gradient(#31dba1,#057056)}.action.pass{background:linear-gradient(#b075eb,#6231a9)}.action.snatch{background:linear-gradient(#f16d9b,#83224b)}
+.action:disabled{opacity:.39;filter:grayscale(.8);cursor:not-allowed}.action:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 #001017}
+.hud-help{padding:0 4px;margin-top:6px;min-height:17px;font-size:11px;color:#bfe7f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.toast-layer{position:absolute;z-index:20;inset:0;display:grid;place-items:center;background:#001321a6;backdrop-filter:blur(6px);padding:14px}
+.toast-card{width:min(440px,94%);max-height:80dvh;overflow:auto;background:linear-gradient(145deg,#105671,#021c30);border:2px solid #ffe4a0;border-radius:18px;box-shadow:0 20px 90px #000c;padding:18px;color:#f3fbff;text-align:center}
+.toast-card h2{font:900 clamp(21px,4vw,32px) Georgia,serif;color:#ffe6a6;margin:0 0 12px}.toast-card p{line-height:1.5;margin:7px 0 15px}.toast-card button{border:1px solid #f2d48f;border-radius:10px;padding:10px 20px;background:#095075;color:#fff;font-weight:900;margin:4px}.target-choices{display:grid;gap:8px}.target-choices button{width:100%;background:linear-gradient(#0c5e7a,#06334b)}
+@media(orientation:portrait){.game-top{min-height:49px;padding:5px 7px;gap:4px}.game-logo{font-size:16px}.game-logo span{font-size:7px;letter-spacing:.08em}.game-stat{padding:3px 4px;min-width:48px}.game-stat small{font-size:8px;letter-spacing:0}.game-stat strong{font-size:16px}.game-mini{padding:5px;min-width:25px}.arena-title{top:9px;font-size:12px}.seats{left:2%;right:2%;gap:3px}.seats.top{top:9%}.seats.bottom{bottom:7%}.seat{flex:1;max-width:105px;min-width:0;padding:3px 2px 2px;border-radius:7px}.seat-avatar{width:21px;height:21px;font-size:10px;border-width:1px}.seat-name{font-size:10px;padding-top:1px}.seat-coins{font-size:11px}.seat-icon{font-size:9px}.under-chest{width:70%;top:51%;max-height:63%}.arena-table{top:58%;width:96%;height:38%}.control-dock{padding:5px 7px max(5px,env(safe-area-inset-bottom))}.info-line{min-height:31px;margin-bottom:5px}.round-rule{display:none}.event-line{font-size:10px}.actions{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}.action{grid-column:span 2;min-height:clamp(46px,7vh,59px);font-size:12px;border-radius:9px;padding:3px 1px}.action:nth-child(4),.action:nth-child(5){grid-column:span 3}.action .aicon{font-size:20px}.action small{font-size:9px}.hud-help{font-size:10px;margin-top:5px}}
+@media(orientation:landscape){.game-top{padding:5px 14px;min-height:48px}.arena-title{top:8px}.under-chest{width:min(42%,480px);top:49%;max-height:74%}.arena-table{width:66%;top:52%}.seats{left:auto;right:auto;top:9%!important;bottom:auto!important;width:min(18%,185px);display:flex;flex-direction:column;gap:7px}.seats.top{left:2%}.seats.bottom{right:2%}.seat{width:100%;max-width:none;display:grid;grid-template-columns:25px minmax(0,1fr) auto;align-items:center;gap:5px;padding:5px 8px;text-align:left;min-height:42px}.seat-avatar{grid-row:1/3;grid-column:1;width:26px;height:26px}.seat-name{grid-column:2;grid-row:1}.seat-coins{grid-column:2;grid-row:2}.seat-icon{grid-column:3;grid-row:1/3;position:static}.control-dock{padding:5px 12px max(5px,env(safe-area-inset-bottom))}.actions{grid-template-columns:repeat(5,1fr)}.action:nth-child(n){grid-column:span 1}.action{min-height:50px}}
+@media(orientation:landscape) and (max-height:440px){.game-top{min-height:38px;padding:2px 10px}.game-logo{font-size:15px}.game-logo span{display:none}.game-stat{padding:1px 5px}.game-stat strong{font-size:16px}.arena-title{font-size:13px}.seats{gap:3px;top:6%!important}.seat{min-height:31px;grid-template-columns:19px minmax(0,1fr) auto;padding:2px 4px;gap:3px}.seat-avatar{width:19px;height:19px;font-size:9px}.seat-name{font-size:10px}.seat-coins{font-size:10px}.action{min-height:39px;font-size:11px}.action .aicon{font-size:15px}.action small{display:none}.info-line{min-height:22px}.hud-help{display:none}}
+@media(max-height:620px) and (orientation:portrait){.game-top{min-height:40px}.arena-title{top:4px;font-size:11px}.seats.top{top:7%}.seats.bottom{bottom:4%}.seat-avatar{display:none}.under-chest{width:59%}.action{min-height:41px}.action .aicon{font-size:15px}.hud-help{display:none}}
+@media(prefers-reduced-motion:reduce){.sea-fish,.under-chest,.outcome-burst,.outcome-banner,.game-stat.danger-time strong{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+ <main class="portrait" aria-label="DON'T OPEN IT main menu">
+  <button class="hit sound" aria-label="Sound settings" onclick="openMenu('settings')"></button>
+  <button class="hit settings" aria-label="Settings" onclick="openMenu('settings')"></button>
+  <button class="hit create" aria-label="Create lobby" onclick="openMenu('create')"></button>
+  <button class="hit join" aria-label="Join lobby" onclick="openMenu('join')"></button>
+ </main>
+ <main class="landscape" aria-label="DON'T OPEN IT landscape main menu">
+  <div class="chest-frame" role="img" aria-label="Mysterious glowing treasure chest in a dark temple"><div class="chest-art"></div></div>
+  <section class="side"><h1><span>DON'T</span>OPEN IT</h1><p class="tag">EVERY BOX HAS A SECRET</p>
+   <button class="menu-button gold" onclick="openMenu('create')">CREATE LOBBY</button>
+   <button class="menu-button blue" onclick="openMenu('join')">JOIN LOBBY</button>
+   <div class="small-actions"><button onclick="openMenu('settings')">Settings</button></div>
+  </section>
+ </main>
+</div>
+<div class="overlay" id="overlay" hidden><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading"><button class="close" aria-label="Close" onclick="closeMenu()">×</button><h2 id="heading"></h2><form id="lobbyForm"><div id="inputs"></div><button class="menu-button gold" type="submit">CONTINUE</button></form><p class="notice" id="notice"></p><button class="back" onclick="closeMenu()">← BACK TO MENU</button></section></div>
+
+<section class="room-screen" id="roomScreen" hidden aria-label="Multiplayer waiting room">
+ <div class="room-card">
+  <h2 id="roomTitle">WAITING ROOM</h2>
+  <p class="room-status" id="roomStatus">Waiting for players…</p>
+  <div class="muted">SHARE THIS ROOM CODE</div>
+  <div class="room-code" id="roomCode">------</div>
+  <button class="back" id="copyCode" type="button">📋 COPY CODE</button>
+  <p class="muted" id="playerTotal">Players: 0/10</p>
+  <ul class="room-players" id="playerList"></ul>
+  <p class="message" id="roomMessage" role="status"></p>
+  <div class="room-actions">
+   <button class="menu-button gold wide" id="startGame" type="button" hidden>START GAME</button>
+   <button class="menu-button blue" id="refreshRoom" type="button">REFRESH</button>
+   <button class="danger" id="leaveRoom" type="button">LEAVE ROOM</button>
+  </div>
+ </div>
+</section>
+<section class="ocean-game" id="gameScreen" hidden aria-label="Underwater gameplay">
+ <header class="game-top">
+  <div class="game-logo"><b>DON'T</b> OPEN IT<span>THE SUNKEN KINGDOM 🌊</span></div>
+  <div class="game-stat"><small>ROUND</small><strong id="gameRound">1</strong></div>
+  <div class="game-stat" id="roundTimeChip"><small>ROUND ⏳</small><strong id="roundLeft">60s</strong></div>
+  <div class="game-stat" id="turnTimeChip"><small>TURN ⏱</small><strong id="turnLeft">10s</strong></div>
+  <button class="game-mini" id="gameMenuBtn" aria-label="Leave game screen" title="Back to menu">☰</button>
+ </header>
+ <main class="arena" id="gameStage" aria-label="Ancient underwater table and shared treasure chest">
+  <!-- Scenery is self-contained, so only one HTML file needs to be copied to GitHub. -->
+  <svg class="arena-art" viewBox="0 0 1100 730" preserveAspectRatio="xMidYMid slice" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+   <defs>
+    <linearGradient id="seaSky" x2="0" y2="1"><stop stop-color="#05779a"/><stop offset=".38" stop-color="#0c526c"/><stop offset=".8" stop-color="#043a52"/><stop offset="1" stop-color="#021d33"/></linearGradient>
+    <radialGradient id="seaHalo"><stop stop-color="#c9ffeb" stop-opacity=".65"/><stop offset=".4" stop-color="#3bdad6" stop-opacity=".20"/><stop offset="1" stop-color="#1cd5e0" stop-opacity="0"/></radialGradient>
+    <linearGradient id="stoneGrad" x2="1" y2="1"><stop stop-color="#518d88"/><stop offset=".32" stop-color="#285a65"/><stop offset=".72" stop-color="#16434e"/><stop offset="1" stop-color="#062a3e"/></linearGradient>
+    <linearGradient id="beamGrad"><stop stop-color="#d4fff5" stop-opacity=".22"/><stop offset="1" stop-color="#cafff7" stop-opacity="0"/></linearGradient>
+    <linearGradient id="floorGrad" x2="0" y2="1"><stop stop-color="#257887"/><stop offset="1" stop-color="#012637"/></linearGradient>
+    <filter id="ruinsBlur"><feGaussianBlur stdDeviation="4"/></filter>
+    <pattern id="ruinsTiles" width="65" height="39" patternUnits="userSpaceOnUse"><path d="M0 0H65M0 39H65M33 0v39" fill="none" stroke="#021929" stroke-opacity=".36" stroke-width="3"/></pattern>
+   </defs>
+   <rect width="1100" height="730" fill="url(#seaSky)"/>
+   <ellipse cx="550" cy="5" rx="540" ry="490" fill="url(#seaHalo)"/>
+   <g fill="url(#beamGrad)" opacity=".75"><path d="M200 0H280L560 730H260Z"/><path d="M420 0H470L820 730H685Z"/><path d="M710 0H780L965 730H900Z"/></g>
+   <!-- Ancient sunken city in the distance -->
+   <g opacity=".45" filter="url(#ruinsBlur)">
+    <path d="M0 490L70 420L125 462L165 363L220 414L290 347L346 431L432 373L486 425L550 356L622 431L698 373L753 439L804 349L860 399L920 339L985 429L1039 371L1100 430V730H0Z" fill="#073a52"/>
+    <path d="M126 385V239h66v146zM92 237h128v31H92zM147 200h24v38h-24zM881 380V250h67v130zM855 239h126v33H855z" fill="#2a6471"/>
+   </g>
+   <!-- pillars and carved archways -->
+   <g fill="url(#stoneGrad)" stroke="#072b3d" stroke-width="7">
+    <path d="M0 0H130L110 89L117 544L50 566L0 514Z"/>
+    <path d="M15 94H145L133 125H0Z"/>
+    <path d="M77 0H159L149 45L67 47Z"/>
+    <path d="M1100 0H979L990 98L982 547L1050 560L1100 528Z"/>
+    <path d="M958 90H1100V128H971Z"/>
+    <path d="M952 0H1052L1051 53L961 48Z"/>
+    <path d="M178 169l22-24 46 12-13 23v300l-32 15-21-22Z" opacity=".55"/>
+    <path d="M922 177l-31-24-33 18 5 20-2 289 40 14 23-19Z" opacity=".55"/>
+   </g>
+   <g stroke="#87d7b7" stroke-opacity=".32" fill="none" stroke-width="7"><path d="M41 0Q29 80 61 162T62 284"/><path d="M1060 0Q1095 79 1055 175T1038 280"/><path d="M209 167Q200 250 239 301"/></g>
+   <g fill="#b2f5f0" opacity=".5"><circle cx="168" cy="110" r="3"/><circle cx="261" cy="430" r="5"/><circle cx="790" cy="160" r="3"/><circle cx="1030" cy="420" r="4"/><circle cx="438" cy="88" r="3"/><circle cx="702" cy="420" r="4"/><circle cx="374" cy="289" r="5"/><circle cx="737" cy="305" r="3"/><circle cx="508" cy="390" r="4"/></g>
+   <path d="M0 603Q165 565 312 617Q478 548 607 603Q795 547 1100 617V730H0Z" fill="url(#floorGrad)"/>
+   <path d="M0 645Q239 578 428 638Q567 596 734 642Q942 574 1100 653V730H0Z" fill="#043c49"/>
+   <ellipse cx="550" cy="650" rx="417" ry="97" fill="#082633" stroke="#468f95" stroke-width="17"/>
+   <ellipse cx="550" cy="637" rx="398" ry="81" fill="#235963" stroke="#93c3a3" stroke-width="11"/>
+   <ellipse cx="550" cy="628" rx="333" ry="61" fill="#0b4d5b" stroke="#7eaa9a" stroke-width="9"/>
+   <ellipse cx="550" cy="635" rx="298" ry="46" fill="none" stroke="#2ebfc9" stroke-opacity=".35" stroke-width="7"/>
+   <path d="M190 644Q255 611 324 642M775 649Q848 616 915 640" fill="none" stroke="#bdd18e" stroke-width="6" stroke-opacity=".5"/>
+   <!-- coral + seaweed -->
+   <g fill="none" stroke-linecap="round">
+    <path d="M10 730Q42 657 11 580M55 730Q20 663 81 582M92 730Q86 668 126 620" stroke="#1ac5aa" stroke-width="20"/>
+    <path d="M1050 730Q1010 667 1070 577M1100 730Q1079 650 1040 605M1003 730Q1025 660 976 617" stroke="#14af93" stroke-width="20"/>
+    <path d="M118 730Q135 654 170 640M150 730Q165 690 205 681" stroke="#2f958e" stroke-width="14"/>
+    <path d="M942 730Q934 668 895 652M970 730Q952 699 918 686" stroke="#31aa8f" stroke-width="13"/>
+   </g>
+   <g fill="#ef797c"><circle cx="70" cy="667" r="23"/><circle cx="89" cy="702" r="17"/><circle cx="23" cy="698" r="14"/><circle cx="1020" cy="689" r="27"/><circle cx="990" cy="716" r="17"/></g>
+   <g fill="#ffbd73"><path d="M138 729l10-78 20 78m-22-35l-31-20m37-9 34-27"/><path d="M937 729l-3-69-14 69m9-29-27-12m26-15 25-28"/></g>
+   <g fill="#75cbe4" opacity=".8"><path d="M320 169q11-17 34 0-19 15-34 0m-10 0-14-8v16Z"/><path d="M760 220q10-15 32 0-15 16-32 0m-10 0-13-8v16Z"/><path d="M840 107q12-13 33 0-13 14-33 0m-8 0-11-7v15Z"/></g>
+  </svg>
+  <div class="arena-title">⚜ THE SUNKEN TREASURE ⚜</div>
+  <div class="arena-table" aria-hidden="true"></div>
+  <span class="sea-fish" aria-hidden="true">🐠</span><span class="sea-fish fish2" aria-hidden="true">🐟</span>
+  <div class="seats top" id="seatsTop" aria-label="Players seated on one side of the chest"></div>
+  <div class="seats bottom" id="seatsBottom" aria-label="Players seated on the other side of the chest"></div>
+  <div class="under-chest" id="animatedChest" role="img" aria-label="Elaborate glowing treasure chest with golden filigree and aquamarine gemstones">
+   <svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+     <linearGradient id="chWood" x1="0" y1="0" x2=".2" y2="1"><stop stop-color="#945429"/><stop offset=".3" stop-color="#51341f"/><stop offset=".7" stop-color="#341a18"/><stop offset="1" stop-color="#1f1718"/></linearGradient>
+     <linearGradient id="chGold" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#fff4b8"/><stop offset=".24" stop-color="#ffde77"/><stop offset=".53" stop-color="#c17c25"/><stop offset=".8" stop-color="#f8c863"/><stop offset="1" stop-color="#78451a"/></linearGradient>
+     <radialGradient id="chGem"><stop stop-color="#d8ffff"/><stop offset=".35" stop-color="#5afae9"/><stop offset=".9" stop-color="#087d9f"/><stop offset="1" stop-color="#034963"/></radialGradient>
+     <linearGradient id="chOpen" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f8f5bc"/><stop offset=".3" stop-color="#48ede6"/><stop offset="1" stop-color="#062633"/></linearGradient>
+     <filter id="chSpark"><feGaussianBlur stdDeviation="8"/></filter>
+     <pattern id="chGrain" patternUnits="userSpaceOnUse" width="31" height="17"><path d="M0 8Q13 1 25 9" fill="none" stroke="#f4bd71" stroke-width="1.2" stroke-opacity=".17"/></pattern>
+    </defs>
+    <ellipse cx="298" cy="383" rx="245" ry="27" fill="#00141f" opacity=".66"/>
+    <ellipse cx="300" cy="366" rx="165" ry="26" fill="#63f3fa" opacity=".5" filter="url(#chSpark)"/>
+    <g class="base">
+     <path d="M89 206Q299 233 508 207L477 362Q300 412 115 360Z" fill="url(#chWood)" stroke="#2c1b18" stroke-width="12"/>
+     <path d="M89 206Q299 233 508 207L477 362Q300 412 115 360Z" fill="url(#chGrain)"/>
+     <path d="M118 257Q300 290 480 255M119 345Q303 393 477 350" fill="none" stroke="url(#chGold)" stroke-width="17"/>
+     <path d="M126 222L132 360M200 231L205 380M395 231L391 382M472 224L462 361" fill="none" stroke="url(#chGold)" stroke-width="21"/>
+     <path d="M88 204Q310 221 511 204" fill="none" stroke="url(#chGold)" stroke-width="27"/>
+     <g fill="#ffe093" stroke="#693414" stroke-width="3"><circle cx="135" cy="268" r="8"/><circle cx="207" cy="281" r="8"/><circle cx="393" cy="282" r="8"/><circle cx="465" cy="264" r="8"/><circle cx="137" cy="342" r="8"/><circle cx="205" cy="358" r="8"/><circle cx="391" cy="359" r="8"/><circle cx="465" cy="341" r="8"/></g>
+     <path d="M261 221H340V308Q299 340 261 306Z" fill="url(#chGold)" stroke="#683b1b" stroke-width="7"/>
+     <ellipse cx="300" cy="271" rx="25" ry="29" fill="#013642" stroke="#fff0b6" stroke-width="7"/>
+     <path d="M293 270a9 9 0 1 1 15 2l-4 15h-10l-1-15Z" fill="#050f19"/>
+     <g fill="none" stroke="#f2bd67" stroke-width="4" opacity=".8"><path d="M158 305q19-18 34 1l-17 20m19-15q-12 5-12 16"/><path d="M406 305q19-18 33 2l-17 20m17-15q-12 4-12 15"/></g>
+     <g fill="#b6fff3"><circle cx="108" cy="212" r="7"/><circle cx="498" cy="209" r="7"/></g>
+    </g>
+    <g class="lid">
+     <path d="M84 213Q76 111 174 71Q305 2 440 71Q526 110 518 213Q305 243 84 213Z" fill="url(#chWood)" stroke="#261c1d" stroke-width="13"/>
+     <path d="M84 213Q76 111 174 71Q305 2 440 71Q526 110 518 213Q305 243 84 213Z" fill="url(#chGrain)"/>
+     <path d="M86 214Q304 243 518 214" fill="none" stroke="url(#chGold)" stroke-width="27"/>
+     <path d="M161 83Q297 14 449 85M117 132Q300 47 492 135" fill="none" stroke="#f4b855" stroke-width="12" opacity=".83"/>
+     <path d="M158 77Q112 130 121 219M237 41Q213 125 213 230M386 42Q415 127 401 231M452 85Q502 143 488 220" fill="none" stroke="url(#chGold)" stroke-width="25"/>
+     <path d="M270 23Q301 15 332 27L334 229Q304 236 269 230Z" fill="url(#chGold)" stroke="#76431d" stroke-width="5"/>
+     <ellipse cx="302" cy="126" rx="44" ry="51" fill="#063545" stroke="#ffeba5" stroke-width="9"/>
+     <ellipse cx="302" cy="124" rx="32" ry="38" fill="url(#chGem)"/>
+     <path d="M301 87L322 126L301 160L282 126Z" fill="#b5fff7" opacity=".82"/>
+     <g fill="none" stroke="#eac06a" stroke-width="5"><path d="M145 142q23-25 44 0-18 28-39 7M412 141q25-27 46 0-22 25-43 9"/><path d="M241 179l24-25m71 0 24 25"/></g>
+     <g fill="#fcf1b1" stroke="#663719" stroke-width="3"><circle cx="148" cy="171" r="8"/><circle cx="213" cy="142" r="8"/><circle cx="402" cy="143" r="8"/><circle cx="462" cy="167" r="8"/></g>
+    </g>
+    <g fill="#c1fffd" opacity=".96"><path d="M61 182l5 16 15 6-15 5-5 16-6-16-15-5 15-6Z"/><path d="M537 121l5 17 17 6-17 5-5 17-6-17-16-5 16-6Z"/><path d="M420 26l3 10 10 4-10 4-3 10-4-10-10-4 10-4Z"/></g>
+    <g fill="none" stroke="#cbffff" stroke-width="2" opacity=".85"><circle cx="55" cy="114" r="8"/><circle cx="545" cy="276" r="9"/><circle cx="50" cy="275" r="4"/><circle cx="552" cy="60" r="4"/></g>
+   </svg>
+  </div>
+  <div class="outcome-burst" id="outcomeBurst" aria-live="polite" aria-atomic="true"><div class="outcome-banner" id="outcomeBanner"></div></div>
+ </main>
+ <footer class="control-dock">
+  <div class="info-line">
+   <div class="turn-callout" id="turnBanner">⏳ WAITING…</div>
+   <div class="round-rule">💀 ELIMINATIONS FROM ROUND 3</div>
+   <div class="event-line" id="eventLine">Waiting for the first move…</div>
+  </div>
+  <div class="actions" aria-label="Game actions">
+   <button class="action open" data-game-action="OPEN"><span class="aicon">📦</span>OPEN<small>End round</small></button>
+   <button class="action inspect" data-game-action="INSPECT"><span class="aicon">🔍</span>INSPECT<small>−20 • keep turn</small></button>
+   <button class="action shield" data-game-action="SHIELD"><span class="aicon">🛡️</span>SHIELD<small>−20 • block 100</small></button>
+   <button class="action pass" data-game-action="PASS"><span class="aicon">⏭️</span>PASS<small>Skip turn</small></button>
+   <button class="action snatch" data-game-action="STEAL_OPEN"><span class="aicon">🥷</span>STEAL & OPEN<small>Snatch the chest</small></button>
+  </div>
+  <div class="hud-help" id="gameFeedback" role="status">Opening ends the round • Lowest coins eliminated from Round 3</div>
+ </footer>
+ <div class="toast-layer" id="infoModal" hidden>
+  <div class="toast-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+   <h2 id="modalTitle">Message</h2><p id="modalText"></p>
+   <div class="target-choices" id="targetButtons"></div>
+   <button id="modalClose" type="button">OK</button>
+  </div>
+ </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+const SUPABASE_URL='https://aseojgkjrrnthyisvbzh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8zkaa11lk0G-CrHv44al_A_aOi10qXP';
+const $=id=>document.getElementById(id);
+const overlay=$('overlay'),form=$('lobbyForm'),inputs=$('inputs'),notice=$('notice');
+const roomScreen=$('roomScreen'),roomMessage=$('roomMessage'),gameScreen=$('gameScreen');
+let mode='create',previousFocus=null,client=null,currentRoom=null,refreshTimer=null;
+let working=false,inGame=false,roomLoading=false,gameLoading=false,actionWorking=false;
+let gameState=null,lastEventSeen=null,inspectedSeq=-1,privateClue='';
+try{
+ if(!window.supabase)throw Error('Supabase library failed to load. Check your connection.');
+ client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true}
+ });
+}catch(err){console.error('Supabase error:',err)}
+function errorText(e){return e?.message||String(e)}
+function setBusy(v){working=v;form.querySelector('button[type=submit]').disabled=v;form.classList.toggle('busy',v)}
+async function ensureAuth(){
+ if(!client)throw Error('Online connection unavailable. Reload the page.');
+ const {data,error}=await client.auth.getSession();
+ if(error)throw error;
+ if(data.session)return data.session;
+ const result=await client.auth.signInAnonymously();
+ if(result.error)throw result.error;
+ return result.data.session;
+}
+function openMenu(type){
+ mode=type;previousFocus=document.activeElement;
+ $('heading').textContent=type==='create'?'Create Lobby':type==='join'?'Join Lobby':'Settings';
+ form.hidden=type==='settings';inputs.replaceChildren();
+ if(type!=='settings'){
+  const label=document.createElement('label');label.htmlFor='nickname';label.textContent='YOUR NAME';
+  const name=document.createElement('input');name.id='nickname';name.name='name';name.maxLength=20;
+  name.required=true;name.autocomplete='nickname';name.placeholder='Enter your name';
+  name.value=localStorage.getItem('doi-nickname')||'';inputs.append(label,name);
+  if(type==='join'){
+   const codeLabel=document.createElement('label');codeLabel.htmlFor='code';codeLabel.textContent='LOBBY CODE';
+   const code=document.createElement('input');code.id='code';code.name='code';code.maxLength=6;
+   code.required=true;code.autocapitalize='characters';code.placeholder='6-character code';
+   inputs.append(codeLabel,code);
+  }
+ }
+ notice.textContent=type==='settings'
+  ?'Sound controls are planned for a future update.'
+  :'Underwater Multiplayer · Internet connection required';
+ overlay.hidden=false;
+ setTimeout(()=>{(inputs.querySelector('input')||overlay.querySelector('.close')).focus()},50);
+}
+function closeMenu(){if(working)return;overlay.hidden=true;previousFocus?.focus()}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();if(working)return;
+ const data=new FormData(form),name=String(data.get('name')||'').trim();
+ if(!name||name.length>20)return;
+ setBusy(true);notice.textContent='Connecting to multiplayer…';
+ try{
+  const session=await ensureAuth();localStorage.setItem('doi-nickname',name);
+  let result;
+  if(mode==='create'){
+   result=await client.rpc('create_game_lobby_v1',{p_nickname:name,p_max_players:10});
+  }else{
+   const code=String(data.get('code')||'').trim().toUpperCase();
+   if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Enter a six-character room code.');
+   result=await client.rpc('join_game_lobby',{p_code:code,p_nickname:name});
+  }
+  if(result.error)throw result.error;
+  const lobby=result.data?.[0];
+  if(!lobby?.lobby_id)throw Error('Room was not returned by Supabase.');
+  currentRoom={id:lobby.lobby_id,code:lobby.lobby_code,name,userId:session.user.id};
+  localStorage.setItem('doi-v1-room',JSON.stringify(currentRoom));
+  overlay.hidden=true;roomScreen.hidden=false;gameScreen.hidden=true;
+  await loadRoom();startPolling();
+ }catch(err){notice.textContent='⚠️ '+errorText(err);console.error(err)}
+ finally{setBusy(false)}
+});
+async function loadRoom(){
+ if(!currentRoom||!client||roomLoading||inGame)return;
+ roomLoading=true;
+ try{
+  const {data,error}=await client.rpc('get_my_lobby',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  if(!data?.length){roomMessage.textContent='This room is unavailable.';return;}
+  const first=data[0],isHost=first.host_id===currentRoom.userId;
+  if(first.lobby_status==='playing'||first.lobby_status==='finished'){
+   inGame=true;roomScreen.hidden=true;gameScreen.hidden=false;
+   // Existing room code is kept in currentRoom for sharing.
+   await loadGame();return;
+  }
+  roomScreen.hidden=false;gameScreen.hidden=true;
+  $('roomCode').textContent=first.lobby_code;
+  $('roomStatus').textContent='⏳ Waiting for players…';
+  $('playerTotal').textContent=`Players: ${data.length}/${first.max_players}`;
+  const list=$('playerList');list.replaceChildren();
+  for(const player of data){
+   const li=document.createElement('li'),name=document.createElement('span'),badge=document.createElement('span');
+   const own=player.player_id===currentRoom.userId;
+   name.textContent=player.nickname+(own?' (you)':'');
+   badge.textContent=player.player_id===first.host_id?'👑 HOST':'🟢';
+   badge.className='crown';li.append(name,badge);list.append(li);
+  }
+  $('startGame').hidden=!isHost;
+  $('startGame').disabled=data.length<2;
+  $('roomTitle').textContent='WAITING ROOM';
+  roomMessage.textContent=isHost&&data.length<2?'Invite at least one friend to start.':'';
+ }catch(err){roomMessage.textContent='⚠️ '+errorText(err)}
+ finally{roomLoading=false}
+}
+function startPolling(){
+ clearInterval(refreshTimer);
+ refreshTimer=setInterval(()=>{
+  if(!currentRoom||document.hidden)return;
+  if(inGame)loadGame();else loadRoom();
+ },1350);
+}
+function exitRoom(){
+ clearInterval(refreshTimer);currentRoom=null;inGame=false;
+ gameState=null;lastEventSeen=null;privateClue='';
+ roomScreen.hidden=true;gameScreen.hidden=true;roomMessage.textContent='';
+ localStorage.removeItem('doi-v1-room');
+}
+$('startGame').addEventListener('click',async()=>{
+ if(!currentRoom||working)return;
+ working=true;$('startGame').disabled=true;roomMessage.textContent='Starting underwater game…';
+ try{
+  const {error}=await client.rpc('start_game_lobby',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  await loadRoom();
+ }catch(err){roomMessage.textContent='⚠️ '+errorText(err)}
+ finally{working=false}
+});
+$('leaveRoom').addEventListener('click',async()=>{
+ if(!currentRoom)return;
+ $('leaveRoom').disabled=true;
+ try{
+  const {error}=await client.rpc('leave_game_lobby',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  exitRoom();
+ }catch(err){roomMessage.textContent='⚠️ '+errorText(err)}
+ finally{$('leaveRoom').disabled=false}
+});
+$('refreshRoom').addEventListener('click',()=>{
+ roomMessage.textContent='🔄 Checking for players…';loadRoom();
+});
+$('copyCode').addEventListener('click',async()=>{
+ if(!currentRoom)return;
+ try{await navigator.clipboard.writeText(currentRoom.code);roomMessage.textContent='Room code copied!'}
+ catch{roomMessage.textContent='Share this code: '+currentRoom.code}
+});
+$('gameMenuBtn').addEventListener('click',()=>{
+ exitRoom();
+ // Ongoing matches keep running server-side; returning to the menu does not remove you.
+});
+function formatRemaining(iso){
+ if(!iso)return '--';
+ return Math.max(0,Math.ceil((new Date(iso).getTime()-Date.now())/1000))+'s';
+}
+function updateTimers(){
+ if(!gameState)return;
+ $('roundLeft').textContent=formatRemaining(gameState.round_ends_at);
+ $('turnLeft').textContent=gameState.pending_thief
+  ?formatRemaining(gameState.pending_deadline):formatRemaining(gameState.turn_ends_at);
+}
+setInterval(updateTimers,200);
+function showFeedback(message){
+ $('gameFeedback').textContent=message;
+}
+async function loadGame(){
+ if(!currentRoom||!client||gameLoading)return;
+ gameLoading=true;
+ try{
+  const {data,error}=await client.rpc('get_game_state',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  if(data?.status==='preparing'){
+   $('eventLine').textContent='Preparing multiplayer match…';return;
+  }
+  gameState=data;
+  renderGame();
+ }catch(err){showFeedback('⚠️ '+errorText(err))}
+ finally{gameLoading=false}
+}
+const $seats = [$('seatsTop'),$('seatsBottom')];
+const avatarColors=['#ba5f35','#7d5bc1','#317db0','#b04675','#52884b','#d37b2c','#9c426e','#368d92','#a28b31','#a44f53'];
+let activeModal='',burstTimeout=null,privateClueTurn=null;
+function safeName(p){return p?.nickname||'Player'}
+function showModal(title,text,buttons=[]){
+ activeModal=title;
+ $('modalTitle').textContent=title;$('modalText').textContent=text;
+ $('targetButtons').replaceChildren();
+ for(const b of buttons){const el=document.createElement('button');el.textContent=b.label;el.dataset.target=b.id;$('targetButtons').append(el)}
+ $('modalClose').hidden=buttons.length>0;
+ $('infoModal').hidden=false;
+}
+function hideModal(){
+ $('infoModal').hidden=true;
+ activeModal='';$('targetButtons').replaceChildren();
+}
+$('modalClose').addEventListener('click',hideModal);
+function outcomeTitle(key){return ({treasure:'💰 TREASURE!',jackpot:'👑 JACKPOT!',bomb:'💣 BOMB!',disaster:'☠️ DISASTER!',thief:'🥷 THIEF!',timeout:'⏳ TIME UP!'})[key]||'🌊 THE MYSTERY';}
+function showBurst(outcome,message){
+ const burst=$('outcomeBurst'),banner=$('outcomeBanner'),chest=$('animatedChest');
+ clearTimeout(burstTimeout);
+ banner.replaceChildren();
+ const title=document.createElement('div');title.textContent=outcomeTitle(outcome);
+ const subtitle=document.createElement('small');subtitle.textContent=message;
+ banner.append(title,subtitle);
+ burst.className='outcome-burst show'+(['bomb','disaster'].includes(outcome)?' bad':'');
+ chest.className='under-chest opened '+outcome;
+ burstTimeout=setTimeout(()=>{
+  burst.className='outcome-burst';chest.className='under-chest';
+ },2150);
+}
+function makeSeat(p,index,s){
+ const seat=document.createElement('div');seat.className='seat';
+ if(p.id===s.turn_player&&s.status==='playing')seat.classList.add('active');
+ if(!p.alive)seat.classList.add('dead');
+ seat.title=`${safeName(p)} — ${p.coins} coins${!p.alive?' — ELIMINATED':''}`;
+ const avatar=document.createElement('span');avatar.className='seat-avatar';avatar.style.setProperty('--avatar',avatarColors[index%avatarColors.length]);avatar.textContent=(safeName(p).charAt(0)||'?').toUpperCase();
+ const label=document.createElement('span');label.className='seat-name';label.textContent=safeName(p)+(p.id===currentRoom.userId?' ★':'');
+ const balance=document.createElement('span');balance.className='seat-coins';balance.textContent='🪙 '+p.coins;
+ if(p.shield){const sh=document.createElement('small');sh.className='seat-shield';sh.textContent='🛡';balance.append(sh)}
+ const icon=document.createElement('span');icon.className='seat-icon';icon.textContent=!p.alive?'💀':p.id===s.turn_player?'⚡':p.host?'👑':'';
+ seat.append(avatar,label,balance,icon);return seat;
+}
+function renderGame(){
+ const s=gameState;if(!s||!currentRoom)return;
+ $('gameRound').textContent=s.round;
+ const players=s.players||[];
+ const me=players.find(p=>p.id===currentRoom.userId);
+ const current=players.find(p=>p.id===s.turn_player);
+ const myTurn=s.turn_player===currentRoom.userId&&s.status==='playing';
+ const thiefIsMine=s.pending_thief===currentRoom.userId&&s.status==='playing';
+ const banner=$('turnBanner');
+ banner.classList.toggle('mine',myTurn||thiefIsMine);
+ banner.textContent=s.status==='finished'?'🏆 GAME OVER':thiefIsMine?'🥷 PICK A PLAYER':myTurn?'⚡ YOUR TURN!':'⏳ '+safeName(current).toUpperCase()+'’S TURN';
+ $('eventLine').textContent=s.last_event||'Something is hiding in the chest…';
+ $('eventLine').title=s.last_event||'';
+ $seats.forEach(root=>root.replaceChildren());
+ const half=Math.ceil(players.length/2);
+ players.forEach((p,i)=>{const root=$seats[i<half?0:1];root.append(makeSeat(p,i,s))});
+ const allow=myTurn&&!s.pending_thief&&!!me?.alive&&s.status==='playing';
+ for(const btn of document.querySelectorAll('[data-game-action]')){
+  const action=btn.dataset.gameAction;
+  let permitted=allow;
+  if(action==='STEAL_OPEN')permitted=!myTurn&&!!me?.alive&&s.snatch_available&&!s.pending_thief&&s.status==='playing';
+  if(action==='INSPECT')permitted=permitted&&me.coins>=20&&inspectedSeq!==s.turn_seq;
+  if(action==='SHIELD')permitted=permitted&&me.coins>=20&&me.shield===0;
+  btn.disabled=!permitted||actionWorking;
+ }
+ if(s.status==='playing'&&thiefIsMine){
+  const targets=players.filter(p=>p.id!==currentRoom.userId&&p.alive&&p.coins>1);
+  if(activeModal!=='THIEF — CHOOSE A PLAYER'){
+   showModal('THIEF — CHOOSE A PLAYER','Steal up to 50 coins. Your victim always keeps at least 1 coin.',targets.map(p=>({label:`🥷 ${p.nickname} — ${p.coins} coins${p.shield?' 🛡':''}`,id:p.id})));
+  }
+ }else if(activeModal==='THIEF — CHOOSE A PLAYER')hideModal();
+ if(lastEventSeen!==null&&s.event_seq!==lastEventSeen){
+  // The chest opening ends the current round. Show the outcome on ALL devices.
+  if(['treasure','jackpot','bomb','disaster','thief'].includes(s.last_outcome)){
+   showBurst(s.last_outcome,s.last_event||'A round has ended.');
+   privateClue='';privateClueTurn=null;
+  }
+  if(s.round!==window._doiPreviousRound){
+   privateClue='';privateClueTurn=null;
+   if(activeModal==='🔍 PRIVATE CLUE')hideModal();
+  }
+ }
+ if(s.status==='finished'){
+  const winner=players.find(p=>p.id===s.winner_id);
+  if(activeModal!=='🏆 WINNER'&&lastEventSeen!==s.event_seq){
+   showModal('🏆 WINNER',winner?`${winner.nickname} wins DON'T OPEN IT! 🎉`:'Match finished.');
+  }
+  showFeedback('🏆 '+(winner?.nickname||'Nobody')+' wins! Press ☰ to return to the menu.');
+ }
+ window._doiPreviousRound=s.round;
+ lastEventSeen=s.event_seq;
+ updateTimers();
+ const turnLeft=Math.max(0,Math.ceil((new Date(s.turn_ends_at).getTime()-Date.now())/1000));
+ $('turnTimeChip').classList.toggle('danger-time',s.status==='playing'&&turnLeft<=3);
+}
+async function playAction(action,target=null){
+ if(!currentRoom||actionWorking||!client)return;
+ actionWorking=true;showFeedback('⏳ Processing '+action.toLowerCase().replace('_',' ')+'…');
+ if(gameState)renderGame();
+ try{
+  const {data,error}=await client.rpc('play_game_action',{
+   p_lobby_id:currentRoom.id,p_action:action,p_target:target
+  });
+  if(error)throw error;
+  if(data?.clue){
+   privateClue=data.clue;inspectedSeq=gameState?.turn_seq??-1;
+   showModal('🔍 PRIVATE CLUE',data.clue+'  (Your turn continues.)');
+  }
+  if(action==='THIEF_TARGET')hideModal();
+  showFeedback(data?.message||'Action completed!');
+  await loadGame();
+ }catch(err){showFeedback('⚠️ '+errorText(err))}
+ finally{actionWorking=false;if(gameState)renderGame()}
+}
+document.querySelectorAll('[data-game-action]').forEach(btn=>{
+ btn.addEventListener('click',()=>playAction(btn.dataset.gameAction));
+});
+$('targetButtons').addEventListener('click',event=>{
+ const btn=event.target.closest('[data-target]');
+ if(btn)playAction('THIEF_TARGET',btn.dataset.target);
+});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeMenu()});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){
+  if(!$('infoModal').hidden&&activeModal!=='THIEF — CHOOSE A PLAYER')hideModal();
+  else if(!overlay.hidden)closeMenu();
+ }
+});
+(async function restoreRoom(){
+ let saved=null;
+ try{saved=JSON.parse(localStorage.getItem('doi-v1-room')||'null')}
+ catch{localStorage.removeItem('doi-v1-room')}
+ if(!saved?.id||!saved?.userId||!client)return;
+ try{
+  const {data,error}=await client.auth.getSession();
+  if(error||data.session?.user?.id!==saved.userId)return;
+  currentRoom=saved;
+  await loadRoom();startPolling();
+ }catch(err){console.warn('Could not restore lobby:',err);exitRoom()}
+})();
+</script>
+</body>
+</html>
