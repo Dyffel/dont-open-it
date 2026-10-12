@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03121d">
+<title>DON'T OPEN IT — v1.0 Underwater</title>
+<style>
+:root{color-scheme:dark;--gold:#ffd27a;--cyan:#48d9ff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,Arial,sans-serif;background:#03121d;color:#fff}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.app{min-height:100vh;min-height:100dvh;position:relative;display:grid;place-items:center;isolation:isolate;overflow:hidden;background:#03121d}
+.app::before{content:"";position:absolute;inset:-45px;z-index:-1;background:linear-gradient(#00121b66,#00121b88),url('menu-art.png') center/cover no-repeat;filter:blur(22px) brightness(.48);transform:scale(1.05)}
+/* Portrait: extend the complete artwork edge-to-edge, including tall phone screens. */
+.portrait{position:relative;width:100vw;height:100dvh;flex:none;background:url('menu-art.png') center/100% 100% no-repeat;box-shadow:none}
+.hit{position:absolute;border:0;background:transparent;color:transparent;touch-action:manipulation;border-radius:12px}.hit:active{background:#ffffff24}
+.hit.create{left:18%;top:60.8%;width:64%;height:9%}.hit.join{left:18%;top:70.5%;width:64%;height:9.6%}.hit.sound{left:3.5%;top:2.3%;width:10%;height:7%}.hit.settings{right:3.5%;top:2.3%;width:10%;height:7%}
+/* Landscape: show the original painted logo AND chest, but crop before the painted buttons. */
+.landscape{display:none;width:min(1320px,96vw);height:min(88dvh,720px);gap:clamp(16px,3.5vw,56px);align-items:center;justify-content:center;padding:clamp(8px,1.6vw,24px)}
+.chest-frame{position:relative;flex:0 1 48%;min-width:0;max-width:calc(76dvh * 1.3);aspect-ratio:1.3;max-height:76dvh;overflow:hidden;border:2px solid #247a91;border-radius:22px;box-shadow:0 20px 60px #000b,0 0 30px #00d9ff12;background:#031b2b}
+/* Artwork is 2:3: a taller viewport and upper crop reveal logo + chest, not the lower painted buttons. */
+.chest-art{position:absolute;inset:0;background-image:url('menu-art.png');background-repeat:no-repeat;background-size:100% auto;background-position:center 17%}
+.chest-frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#00111b50,transparent 27%,transparent 65%,#00111bc9)}
+.side{flex:1 1 52%;min-width:0;max-width:520px;text-align:center;display:flex;flex-direction:column;align-items:stretch;gap:clamp(8px,2vh,20px)}
+.side h1{font-weight:1000;font-size:clamp(34px,4.8vw,76px);line-height:.94;letter-spacing:-.045em;text-shadow:0 5px 0 #321b0b,0 10px 20px #000;margin:0;color:#ffcd57}.side h1 span{display:block;color:#e9e5db}
+.side .tag{font-size:clamp(10px,1.15vw,15px);letter-spacing:.23em;color:#9fe7f2;margin:0 0 4px}
+.menu-button{width:100%;border-radius:16px;padding:clamp(12px,2vh,20px) 10px;font-weight:900;font-size:clamp(16px,2.1vw,28px);text-shadow:0 2px 2px #0008;box-shadow:0 7px 0 #000a,0 12px 20px #0008}
+.menu-button.gold{border:3px solid #ffedac;background:linear-gradient(#ffe87a,#eea800 47%,#b85d00);color:#241100}
+.menu-button.blue{border:3px solid #61efff;background:linear-gradient(#00c7ef,#0074b4 50%,#003b69);color:#fff}
+.small-actions{display:flex;justify-content:center;gap:14px}.small-actions button{border:1px solid #5bcfe5;background:#06263c;border-radius:11px;padding:9px 18px;color:#d7faff}
+.overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#000b;backdrop-filter:blur(9px);padding:18px max(18px,env(safe-area-inset-right)) 18px max(18px,env(safe-area-inset-left))}
+[hidden]{display:none!important}.dialog{position:relative;width:min(440px,100%);max-height:90dvh;overflow:auto;padding:clamp(20px,5vw,32px);border:2px solid #3ac7ee;border-radius:22px;background:linear-gradient(145deg,#0b3952,#03131f);box-shadow:0 20px 80px #000e;text-align:center}
+.dialog h2{font-family:Georgia,serif;color:#ffda79;font-size:clamp(28px,7vw,38px);margin:0 0 20px}.dialog label{display:block;text-align:left;color:#a9eaff;font-weight:800;letter-spacing:.06em;margin:12px 0 7px}.dialog input{display:block;width:100%;border:2px solid #3ac7ee;border-radius:11px;background:#001522;color:#fff;padding:13px;font-size:18px}.dialog .menu-button{margin-top:20px;font-size:19px;padding:13px}.back{margin-top:18px;background:none;color:#b2ecff;border:0;padding:10px}.notice{font-size:13px;color:#c3dbe4;line-height:1.5;min-height:20px}.close{position:absolute;top:9px;right:12px;border:0;background:none;color:#fff;font-size:27px}
+@media(orientation:landscape) and (min-width:600px){.portrait{display:none}.landscape{display:flex}}
+@media(orientation:landscape) and (max-height:450px){.landscape{height:96dvh;padding:4px;gap:18px}.chest-frame{max-height:84dvh;max-width:calc(84dvh * 1.3)}.side{gap:7px}.side h1{font-size:clamp(27px,4vw,48px)}.side .tag{font-size:10px}.menu-button{padding:7px 6px;border-width:2px}.small-actions button{padding:5px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* v0.9 additions: the original main menu CSS above is untouched. */
+.room-screen{position:fixed;inset:0;z-index:8;overflow:auto;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 20%,#13506a,#04111e 68%);}
+.room-card{width:min(680px,100%);border:2px solid #b68b36;border-radius:22px;padding:clamp(18px,4vw,36px);background:linear-gradient(155deg,#103b4c,#07131f);box-shadow:0 18px 70px #000d;text-align:center}
+.room-card h2{font-family:Georgia,serif;color:#ffdb80;font-size:clamp(25px,5vw,38px);margin:0 0 8px}.room-code{font-weight:1000;letter-spacing:.16em;font-size:clamp(36px,9vw,64px);color:#ffe18b;margin:8px 0}.room-status{color:#99e9ff}.room-players{list-style:none;padding:0;display:grid;gap:8px;text-align:left;margin:20px 0}.room-players li{padding:13px 15px;border:1px solid #36718a;border-radius:12px;background:#082637;display:flex;justify-content:space-between;gap:10px}.room-players .crown{color:#ffd27a}.room-actions{display:grid;gap:12px}.room-actions button{font-size:18px}.muted{color:#b3cdd8;font-size:14px;line-height:1.5}.danger{background:#3a1622;border:1px solid #d96a7a;border-radius:10px;color:#fff;padding:13px}.room-card .message{min-height:22px;color:#ffd27a}.busy{opacity:.65;pointer-events:none}
+@media(min-width:620px){.room-actions{grid-template-columns:1fr 1fr}.room-actions .wide{grid-column:1/-1}}
+/* UNDERWATER v1.0 GAME — the original v0.8 main menu CSS above remains unchanged */
+.sea-game{position:fixed;inset:0;z-index:9;overflow:auto;overscroll-behavior:contain;color:#e9faff;background:
+ radial-gradient(ellipse 90% 55% at 50% 0%,#1d7797b9,transparent 76%),
+ radial-gradient(ellipse 85% 65% at 50% 82%,#02324a,transparent 85%),
+ linear-gradient(#054767,#03354e 37%,#021827 100%);}
+.sea-game::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.45;background:repeating-linear-gradient(108deg,transparent 0 16%,#96eafb18 16.5% 18%,transparent 20% 34%);mask-image:linear-gradient(#000,transparent 70%)}
+.sea-game::after{content:"";position:fixed;bottom:-80px;left:-4%;width:108%;height:150px;background:radial-gradient(ellipse at 50% 35%,#0c5061,#032332 60%);filter:blur(22px);pointer-events:none}
+.bubbles{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}.bubble{position:absolute;bottom:-40px;width:var(--bubble-size);height:var(--bubble-size);left:var(--bubble-x);border:1px solid #c7faff63;border-radius:50%;box-shadow:inset 4px 3px 7px #ffffff24,0 0 12px #75e4ff44;animation:bubbleFloat var(--bubble-speed) linear infinite;animation-delay:var(--bubble-delay);opacity:.45}
+@keyframes bubbleFloat{from{transform:translateY(0) translateX(0)}to{transform:translateY(-115vh) translateX(55px)}}
+.sea-wrap{position:relative;z-index:1;max-width:1480px;margin:auto;padding:clamp(10px,2vw,22px);padding-bottom:max(20px,env(safe-area-inset-bottom))}
+.sea-bar{border:1px solid #6de7ff66;background:#0025389c;backdrop-filter:blur(10px);border-radius:18px;box-shadow:0 10px 30px #01182b88;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px}
+.sea-brand{font-size:clamp(18px,3vw,27px);line-height:1;font-weight:1000;letter-spacing:-.045em;color:#ffdc7b;text-shadow:0 3px 0 #472d11,0 0 16px #ffd05e5e}.sea-brand span{color:#fff}
+.sea-sub{font-size:10px;letter-spacing:.2em;color:#9ceaff;margin-top:5px}
+.sea-badges{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:center}.sea-chip{background:#073d58d9;border:1px solid #3faec8aa;border-radius:12px;padding:6px 11px;text-align:center;min-width:65px;box-shadow:inset 0 0 12px #0dc9f214}.sea-chip strong{display:block;color:#ffdb89;font-size:18px;line-height:1.25}.sea-chip small{font-size:10px;letter-spacing:.1em;color:#b2eafa;text-transform:uppercase}
+.sea-layout{display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr) minmax(200px,250px);gap:14px;margin-top:14px;align-items:stretch}
+.sea-panel{border-radius:20px;border:1px solid #61e7fb74;background:linear-gradient(150deg,#064866c9,#021c2ecb);box-shadow:0 12px 40px #001525a1,inset 0 0 22px #44cded0e;min-width:0;padding:15px}
+.sea-panel h3{margin:0 0 12px;color:#ffe49e;letter-spacing:.06em;font-size:15px;text-align:center}.sea-panel h3:after{content:"";display:block;margin:9px auto 0;width:50px;height:2px;background:linear-gradient(90deg,transparent,#55e8ff,transparent)}
+.sea-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}.sea-list li{border:1px solid #367c94a6;background:#04354b9c;padding:9px 10px;border-radius:12px;display:grid;grid-template-columns:1fr auto;gap:3px 10px}.sea-list li.active{background:#136684ac;border-color:#ffd075;box-shadow:inset 0 0 14px #ffdb6329,0 0 13px #ffdf4b2a}.sea-list li.dead{opacity:.45;filter:grayscale(.8)}.sea-list .player-name{overflow-wrap:anywhere;font-weight:850;font-size:13px}.sea-list .player-coins{color:#ffd781;font-weight:900}.sea-list .shield-tag{font-size:11px;color:#a3f5ff}.sea-list .badge{font-size:10px;color:#9bdae7}
+.sea-stage{position:relative;overflow:hidden;border:1px solid #5bcde991;border-radius:22px;min-height:440px;background:
+ radial-gradient(ellipse at 50% 65%,#0d7790a6 0%,#07546c87 25%,transparent 67%),
+ linear-gradient(165deg,#18758b34,#00334a54),#063349;box-shadow:inset 0 -50px 80px #00152299,0 14px 40px #001725aa;display:flex;align-items:center;justify-content:space-between;flex-direction:column;padding:16px 8px 6px}
+.sea-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 54%,#9dffff1b,transparent 65%);pointer-events:none}
+.sea-stage .stage-top{position:relative;z-index:1;text-align:center;width:100%}.stage-top h2{font-family:Georgia,serif;font-size:clamp(23px,3vw,35px);font-weight:800;letter-spacing:.06em;color:#ffe2a0;margin:3px 0;text-shadow:0 4px 10px #001a27}.stage-top p{margin:5px 0;font-weight:750;color:#c0fbff}.sea-chest{position:relative;width:min(100%,570px);margin:auto;filter:drop-shadow(0 18px 20px #00121ea8);transition:filter .2s,transform .2s}.sea-chest svg{display:block;width:100%;height:auto;overflow:visible}.sea-chest .chest-lid{transform-origin:50% 62%;transition:transform .4s ease-out}.sea-chest.open .chest-lid{transform:translateY(-32px) rotate(-3deg)}.sea-chest.jackpot{animation:popGold 1.4s ease-out}.sea-chest.bomb,.sea-chest.disaster{animation:shakeChest .55s ease-out}.sea-chest.treasure{animation:popGold .8s ease-out}.sea-chest.thief{animation:shakeChest .6s ease-out}
+@keyframes popGold{0%{filter:drop-shadow(0 0 10px #fdec9c);transform:scale(.98)}50%{filter:drop-shadow(0 0 55px #ffdf4d);transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes shakeChest{10%,50%{transform:translateX(-9px) rotate(-1deg)}30%,70%{transform:translateX(10px) rotate(1deg)}100%{transform:none}}
+.stage-foot{position:relative;z-index:1;margin-top:auto;padding:4px 14px 9px;text-align:center;color:#b8f8ff;font-size:12px;letter-spacing:.11em}.stage-glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at center,#ffd76b65,transparent 60%)}.sea-stage:has(.jackpot) .stage-glow,.sea-stage:has(.treasure) .stage-glow{opacity:1}.sea-stage:has(.disaster) .stage-glow,.sea-stage:has(.bomb) .stage-glow{opacity:1;background:radial-gradient(ellipse at center,#ff486b73,transparent 60%)}
+.turn-box{border:1px solid #4c9bb3;border-radius:14px;background:#001d2ca6;padding:13px 10px;text-align:center}.turn-box .label{font-size:11px;color:#b0e6f0;letter-spacing:.1em}.turn-box strong{display:block;margin:7px 0;color:#ffde94;font-size:20px;overflow-wrap:anywhere}.turn-box small{color:#d5faff}
+.sea-event{min-height:130px;background:#0024359c;border:1px solid #386f82;border-radius:13px;margin-top:11px;padding:14px 10px;color:#ecfdff;font-size:14px;line-height:1.55;display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}.sea-clue{margin-top:12px;padding:13px 10px;border-radius:13px;background:#093448b0;border:1px solid #3e9daf;color:#cdefff;font-size:13px;line-height:1.5}.sea-clue strong{color:#ffe39b;display:block;margin-bottom:5px}
+.sea-targets{margin-top:12px;border-radius:14px;background:#3e3040b5;padding:10px;display:grid;gap:7px}.sea-targets h4{color:#ffe3a1;margin:0 0 4px;text-align:center}.sea-targets button{padding:10px;border:1px solid #f1cb8e;background:#133b52;border-radius:10px;color:#fff;font-weight:800}
+.sea-controls{margin-top:14px;border-radius:19px;border:1px solid #54d4e89a;padding:15px;background:#022c41d1;box-shadow:0 15px 35px #001b2d91;text-align:center}.sea-controls h3{margin:0 0 10px;color:#ffe19d;font-size:15px;letter-spacing:.13em}.sea-actions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.sea-action{position:relative;min-height:74px;padding:12px 8px 11px;border:2px solid #a9ffff9c;border-radius:14px;color:#fff;font-weight:1000;font-size:clamp(12px,1.4vw,17px);box-shadow:0 5px 0 #001018a3,inset 0 1px 10px #ffffff29;text-shadow:0 2px 2px #00152a}.sea-action small{display:block;margin-top:6px;font-size:10px;font-weight:750;opacity:.94}.sea-action.open{background:linear-gradient(#e3a442,#a85404)}.sea-action.inspect{background:linear-gradient(#29b0e1,#115ca6)}.sea-action.shield{background:linear-gradient(#3fbe85,#12715b)}.sea-action.pass{background:linear-gradient(#9e67c9,#573a99)}.sea-action.steal{background:linear-gradient(#e4578e,#902860)}.sea-action:disabled{opacity:.4;filter:grayscale(.55);cursor:not-allowed;transform:none}.sea-action:not(:disabled):active{transform:translateY(3px);box-shadow:0 2px 0 #001018a3}
+.sea-feedback{min-height:26px;padding-top:10px;font-size:13px;color:#ffe7a9}.sea-exit{background:#05334a;color:#d9f7ff;border:1px solid #3a8ca5;border-radius:10px;padding:7px 13px;margin-top:10px;font-size:12px}.sea-game:focus-visible{outline:2px solid #fff}
+@media(max-width:1000px){.sea-layout{grid-template-columns:210px minmax(0,1fr)}.sea-layout .sea-panel:last-child{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}.sea-layout .sea-panel:last-child h3{grid-column:1/-1}.sea-event{margin-top:0;min-height:80px}.sea-clue{margin-top:0}}
+@media(max-width:650px){.sea-wrap{padding:8px 9px 28px}.sea-bar{justify-content:center;text-align:center;padding:10px;gap:8px}.sea-brand{width:100%}.sea-sub{display:none}.sea-chip{padding:5px 8px;min-width:60px}.sea-chip strong{font-size:16px}.sea-layout{display:flex;flex-direction:column;gap:9px;margin-top:9px}.sea-layout .sea-panel:first-child{order:2;padding:11px}.sea-stage{order:1;min-height:0;padding:9px 7px 0}.sea-stage .stage-top h2{font-size:22px}.sea-chest{width:min(100%,400px);margin:-15px auto -27px}.stage-foot{font-size:11px}.sea-layout .sea-panel:last-child{order:3;display:block;padding:11px}.sea-layout .sea-panel:last-child h3{margin-bottom:9px}.sea-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.sea-list li{padding:8px;font-size:12px}.sea-list .player-name{font-size:12px}.turn-box{padding:8px}.turn-box strong{font-size:17px;margin:4px}.sea-event{min-height:52px;margin-top:8px;padding:9px}.sea-clue{margin-top:8px}.sea-controls{padding:10px;margin-top:9px}.sea-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.sea-action{min-height:62px}.sea-action.steal{grid-column:1/-1}.sea-targets{margin-top:9px}}
+@media(orientation:landscape) and (max-height:550px){.sea-wrap{max-width:1100px}.sea-stage{min-height:320px}.sea-chest{width:min(100%,430px)}.sea-controls{padding:10px}.sea-action{min-height:55px;padding:6px}.sea-layout{gap:10px}}
+@media(prefers-reduced-motion:reduce){.bubble,.sea-chest{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<div class="app">
+ <main class="portrait" aria-label="DON'T OPEN IT main menu">
+  <button class="hit sound" aria-label="Sound settings" onclick="openMenu('settings')"></button>
+  <button class="hit settings" aria-label="Settings" onclick="openMenu('settings')"></button>
+  <button class="hit create" aria-label="Create lobby" onclick="openMenu('create')"></button>
+  <button class="hit join" aria-label="Join lobby" onclick="openMenu('join')"></button>
+ </main>
+ <main class="landscape" aria-label="DON'T OPEN IT landscape main menu">
+  <div class="chest-frame" role="img" aria-label="Mysterious glowing treasure chest in a dark temple"><div class="chest-art"></div></div>
+  <section class="side"><h1><span>DON'T</span>OPEN IT</h1><p class="tag">EVERY BOX HAS A SECRET</p>
+   <button class="menu-button gold" onclick="openMenu('create')">CREATE LOBBY</button>
+   <button class="menu-button blue" onclick="openMenu('join')">JOIN LOBBY</button>
+   <div class="small-actions"><button onclick="openMenu('settings')">Settings</button></div>
+  </section>
+ </main>
+</div>
+<div class="overlay" id="overlay" hidden><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading"><button class="close" aria-label="Close" onclick="closeMenu()">×</button><h2 id="heading"></h2><form id="lobbyForm"><div id="inputs"></div><button class="menu-button gold" type="submit">CONTINUE</button></form><p class="notice" id="notice"></p><button class="back" onclick="closeMenu()">← BACK TO MENU</button></section></div>
+
+<section class="room-screen" id="roomScreen" hidden aria-label="Multiplayer waiting room">
+ <div class="room-card">
+  <h2 id="roomTitle">WAITING ROOM</h2>
+  <p class="room-status" id="roomStatus">Waiting for players…</p>
+  <div class="muted">SHARE THIS ROOM CODE</div>
+  <div class="room-code" id="roomCode">------</div>
+  <button class="back" id="copyCode" type="button">📋 COPY CODE</button>
+  <p class="muted" id="playerTotal">Players: 0/10</p>
+  <ul class="room-players" id="playerList"></ul>
+  <p class="message" id="roomMessage" role="status"></p>
+  <div class="room-actions">
+   <button class="menu-button gold wide" id="startGame" type="button" hidden>START GAME</button>
+   <button class="menu-button blue" id="refreshRoom" type="button">REFRESH</button>
+   <button class="danger" id="leaveRoom" type="button">LEAVE ROOM</button>
+  </div>
+ </div>
+</section>
+<section class="sea-game" id="gameScreen" hidden aria-label="Underwater multiplayer gameplay">
+ <div class="bubbles" id="bubbles" aria-hidden="true"></div>
+ <div class="sea-wrap">
+  <header class="sea-bar">
+   <div><div class="sea-brand"><span>DON'T</span> OPEN IT <span>🌊</span></div><div class="sea-sub">UNDERWATER · SUNKEN TREASURE</div></div>
+   <div class="sea-badges">
+    <div class="sea-chip"><small>Round</small><strong id="gameRound">1</strong></div>
+    <div class="sea-chip"><small>Round left</small><strong id="roundLeft">60s</strong></div>
+    <div class="sea-chip"><small>Turn left</small><strong id="turnLeft">10s</strong></div>
+    <div class="sea-chip"><small>Room</small><strong id="gameRoom">------</strong></div>
+   </div>
+  </header>
+  <div class="sea-layout">
+   <aside class="sea-panel">
+    <h3>🏆 DEEP SEA PLAYERS</h3>
+    <ul class="sea-list" id="gamePlayers"></ul>
+   </aside>
+   <main class="sea-stage" id="gameStage">
+    <div class="stage-glow"></div>
+    <div class="stage-top"><h2>THE SUNKEN CHEST</h2><p>Every box has a secret...</p></div>
+    <div class="sea-chest" id="animatedChest" aria-label="Illustrated golden treasure chest in an underwater ruin">
+     <svg viewBox="0 0 620 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ancient treasure chest resting at the bottom of the ocean">
+      <defs>
+       <radialGradient id="oceanAura"><stop stop-color="#4bf0e5" stop-opacity=".55"/><stop offset="1" stop-color="#51f4ff" stop-opacity="0"/></radialGradient>
+       <linearGradient id="chestWood" x1="0" y1="0" x2=".5" y2="1"><stop stop-color="#96582d"/><stop offset=".5" stop-color="#55341d"/><stop offset="1" stop-color="#241c21"/></linearGradient>
+       <linearGradient id="chestGold" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#fff2aa"/><stop offset=".3" stop-color="#f4ca64"/><stop offset=".7" stop-color="#9e5d25"/><stop offset="1" stop-color="#efb85a"/></linearGradient>
+       <linearGradient id="pearlGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d6ffff"/><stop offset="1" stop-color="#2194b1"/></linearGradient>
+       <filter id="glowSea"><feGaussianBlur stdDeviation="13"/></filter>
+       <filter id="smallGlow"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <ellipse cx="310" cy="240" rx="245" ry="175" fill="url(#oceanAura)" opacity=".9"/>
+      <g opacity=".8"><path d="M4 433 Q58 384 115 428 Q160 393 204 432 T310 430 T426 430 T616 431 L616 470H0Z" fill="#083b49"/>
+      <g fill="#136377"><path d="M0 450q36-50 72-18t45 11q-39 1-58 27H0Z"/><path d="M520 449q50-48 96-11v32h-96Z"/></g>
+      <g stroke="#34c8aa" stroke-width="7" stroke-linecap="round" fill="none"><path d="M57 457q-35-72-20-119m20 119q35-80 20-132m-20 132q5-90-38-123"/><path d="M557 466q-20-67 10-143m-10 143q49-56 53-95m-53 95q-35-65-28-121"/></g>
+      <g fill="#fb867e"><circle cx="95" cy="434" r="10"/><circle cx="83" cy="447" r="7"/><circle cx="105" cy="450" r="8"/><circle cx="537" cy="431" r="10"/></g>
+      </g>
+      <ellipse cx="310" cy="408" rx="238" ry="32" fill="#001725" opacity=".65"/>
+      <ellipse cx="310" cy="405" rx="150" ry="14" fill="#42e6de" filter="url(#glowSea)" opacity=".6"/>
+      <g class="chest-base">
+       <path d="M119 251Q310 275 502 251L479 390Q315 424 141 390Z" fill="url(#chestWood)" stroke="#40251f" stroke-width="9"/>
+       <path d="M130 275L492 273" stroke="#c8934b" stroke-width="12" opacity=".7"/>
+       <path d="M141 377Q311 413 480 378" fill="none" stroke="#d4a14f" stroke-width="18"/>
+       <path d="M161 262L166 394M240 267L241 408M378 266L378 404M462 258L458 393" fill="none" stroke="url(#chestGold)" stroke-width="18"/>
+       <path d="M145 317Q310 341 478 316" stroke="#281b18" stroke-width="5" opacity=".5" fill="none"/>
+       <g fill="url(#chestGold)" stroke="#5e422d" stroke-width="3"><circle cx="168" cy="305" r="7"/><circle cx="240" cy="321" r="7"/><circle cx="378" cy="321" r="7"/><circle cx="457" cy="304" r="7"/><circle cx="167" cy="373" r="7"/><circle cx="242" cy="389" r="7"/><circle cx="379" cy="389" r="7"/><circle cx="455" cy="372" r="7"/></g>
+       <path d="M282 277H339V341Q310 359 282 341Z" fill="url(#chestGold)" stroke="#3e271e" stroke-width="6"/>
+       <circle cx="310" cy="310" r="19" fill="#073a45" stroke="#f9eaa3" stroke-width="5"/>
+       <path d="M305 313a8 8 0 1 1 10 0l-2 13h-6Z" fill="#0e1c2e"/>
+      </g>
+      <g class="chest-lid">
+       <path d="M103 253Q96 158 172 114Q301 51 446 116Q509 155 515 253Q317 281 103 253Z" fill="url(#chestWood)" stroke="#332628" stroke-width="10"/>
+       <path d="M112 251Q306 270 506 250" fill="none" stroke="url(#chestGold)" stroke-width="25"/>
+       <path d="M164 121Q310 56 452 125M132 169Q306 96 488 168" fill="none" stroke="#c78e4b" stroke-width="11"/>
+       <path d="M154 128Q118 183 133 258M235 91Q212 160 214 262M385 89Q405 166 401 263M468 133Q502 192 487 254" fill="none" stroke="url(#chestGold)" stroke-width="20"/>
+       <path d="M279 79Q308 72 342 80L343 261H280Z" fill="url(#chestGold)" stroke="#95602f" stroke-width="3"/>
+       <ellipse cx="310" cy="173" rx="31" ry="37" fill="#2c747a" stroke="#ffe8a0" stroke-width="7"/>
+       <path d="M299 179l11-28 11 28-11 15Z" fill="url(#pearlGlass)"/>
+       <g fill="#fff0a9" opacity=".8"><circle cx="151" cy="185" r="5"/><circle cx="220" cy="156" r="5"/><circle cx="391" cy="155" r="5"/><circle cx="477" cy="185" r="5"/></g>
+      </g>
+      <g opacity=".7" stroke="#c5ffff" fill="none" stroke-width="2"><circle cx="84" cy="203" r="7"/><circle cx="530" cy="160" r="5"/><circle cx="94" cy="112" r="4"/><circle cx="523" cy="309" r="9"/><circle cx="560" cy="243" r="3"/></g>
+      <g fill="#e8fff6" opacity=".85"><path d="M99 225l3 9 9 3-9 3-3 9-3-9-9-3 9-3Z"/><path d="M530 95l2 9 10 2-10 3-2 9-3-9-9-3 9-2Z"/><path d="M449 60l2 7 7 2-7 2-2 7-2-7-7-2 7-2Z"/></g>
+     </svg>
+    </div>
+    <div class="stage-foot">🌊 THE OCEAN HIDES ITS SECRETS 🌊</div>
+   </main>
+   <aside class="sea-panel">
+    <h3>🧭 THE MYSTERY</h3>
+    <div class="turn-box"><div class="label">CURRENT PLAYER</div><strong id="activePlayer">Waiting...</strong><small id="yourTurnLabel">Waiting for game</small></div>
+    <div class="sea-event" role="status" aria-live="polite" id="gameEvent">A mystery awaits beneath the waves...</div>
+    <div class="sea-clue" id="clueCard" hidden><strong>🔍 YOUR PRIVATE INSPECT CLUE</strong><span id="myClue"></span></div>
+    <div class="sea-targets" id="thiefTargets" hidden><h4>🥷 CHOOSE WHO TO STEAL FROM</h4><div id="targetButtons"></div></div>
+   </aside>
+  </div>
+  <div class="sea-controls">
+   <h3>⚓ YOUR ACTIONS</h3>
+   <div class="sea-actions">
+    <button class="sea-action open" data-game-action="OPEN">📦 OPEN<small>Risk the chest</small></button>
+    <button class="sea-action inspect" data-game-action="INSPECT">🔍 INSPECT<small>−20 🪙 · keep turn</small></button>
+    <button class="sea-action shield" data-game-action="SHIELD">🛡️ SHIELD<small>−20 🪙 · block 100</small></button>
+    <button class="sea-action pass" data-game-action="PASS">⏭️ PASS<small>End your turn</small></button>
+    <button class="sea-action steal" data-game-action="STEAL_OPEN">🥷 STEAL & OPEN<small>Snatch chest · once/round</small></button>
+   </div>
+   <div class="sea-feedback" id="gameFeedback" role="status"></div>
+   <button class="sea-exit" id="exitGame" type="button">← BACK TO MAIN MENU</button>
+  </div>
+ </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+const SUPABASE_URL='https://aseojgkjrrnthyisvbzh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8zkaa11lk0G-CrHv44al_A_aOi10qXP';
+const $=id=>document.getElementById(id);
+const overlay=$('overlay'),form=$('lobbyForm'),inputs=$('inputs'),notice=$('notice');
+const roomScreen=$('roomScreen'),roomMessage=$('roomMessage'),gameScreen=$('gameScreen');
+let mode='create',previousFocus=null,client=null,currentRoom=null,refreshTimer=null;
+let working=false,inGame=false,roomLoading=false,gameLoading=false,actionWorking=false;
+let gameState=null,lastEventSeen=null,inspectedSeq=-1,privateClue='';
+try{
+ if(!window.supabase)throw Error('Supabase library failed to load. Check your connection.');
+ client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true}
+ });
+}catch(err){console.error('Supabase error:',err)}
+function errorText(e){return e?.message||String(e)}
+function setBusy(v){working=v;form.querySelector('button[type=submit]').disabled=v;form.classList.toggle('busy',v)}
+async function ensureAuth(){
+ if(!client)throw Error('Online connection unavailable. Reload the page.');
+ const {data,error}=await client.auth.getSession();
+ if(error)throw error;
+ if(data.session)return data.session;
+ const result=await client.auth.signInAnonymously();
+ if(result.error)throw result.error;
+ return result.data.session;
+}
+function openMenu(type){
+ mode=type;previousFocus=document.activeElement;
+ $('heading').textContent=type==='create'?'Create Lobby':type==='join'?'Join Lobby':'Settings';
+ form.hidden=type==='settings';inputs.replaceChildren();
+ if(type!=='settings'){
+  const label=document.createElement('label');label.htmlFor='nickname';label.textContent='YOUR NAME';
+  const name=document.createElement('input');name.id='nickname';name.name='name';name.maxLength=20;
+  name.required=true;name.autocomplete='nickname';name.placeholder='Enter your name';
+  name.value=localStorage.getItem('doi-nickname')||'';inputs.append(label,name);
+  if(type==='join'){
+   const codeLabel=document.createElement('label');codeLabel.htmlFor='code';codeLabel.textContent='LOBBY CODE';
+   const code=document.createElement('input');code.id='code';code.name='code';code.maxLength=6;
+   code.required=true;code.autocapitalize='characters';code.placeholder='6-character code';
+   inputs.append(codeLabel,code);
+  }
+ }
+ notice.textContent=type==='settings'
+  ?'Sound controls are planned for a future update.'
+  :'Underwater Multiplayer · Internet connection required';
+ overlay.hidden=false;
+ setTimeout(()=>{(inputs.querySelector('input')||overlay.querySelector('.close')).focus()},50);
+}
+function closeMenu(){if(working)return;overlay.hidden=true;previousFocus?.focus()}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();if(working)return;
+ const data=new FormData(form),name=String(data.get('name')||'').trim();
+ if(!name||name.length>20)return;
+ setBusy(true);notice.textContent='Connecting to multiplayer…';
+ try{
+  const session=await ensureAuth();localStorage.setItem('doi-nickname',name);
+  let result;
+  if(mode==='create'){
+   result=await client.rpc('create_game_lobby_v1',{p_nickname:name,p_max_players:10});
+  }else{
+   const code=String(data.get('code')||'').trim().toUpperCase();
+   if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Enter a six-character room code.');
+   result=await client.rpc('join_game_lobby',{p_code:code,p_nickname:name});
+  }
+  if(result.error)throw result.error;
+  const lobby=result.data?.[0];
+  if(!lobby?.lobby_id)throw Error('Room was not returned by Supabase.');
+  currentRoom={id:lobby.lobby_id,code:lobby.lobby_code,name,userId:session.user.id};
+  localStorage.setItem('doi-v1-room',JSON.stringify(currentRoom));
+  overlay.hidden=true;roomScreen.hidden=false;gameScreen.hidden=true;
+  await loadRoom();startPolling();
+ }catch(err){notice.textContent='⚠️ '+errorText(err);console.error(err)}
+ finally{setBusy(false)}
+});
+async function loadRoom(){
+ if(!currentRoom||!client||roomLoading||inGame)return;
+ roomLoading=true;
+ try{
+  const {data,error}=await client.rpc('get_my_lobby',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  if(!data?.length){roomMessage.textContent='This room is unavailable.';return;}
+  const first=data[0],isHost=first.host_id===currentRoom.userId;
+  if(first.lobby_status==='playing'||first.lobby_status==='finished'){
+   inGame=true;roomScreen.hidden=true;gameScreen.hidden=false;
+   $('gameRoom').textContent=first.lobby_code;
+   await loadGame();return;
+  }
+  roomScreen.hidden=false;gameScreen.hidden=true;
+  $('roomCode').textContent=first.lobby_code;
+  $('roomStatus').textContent='⏳ Waiting for players…';
+  $('playerTotal').textContent=`Players: ${data.length}/${first.max_players}`;
+  const list=$('playerList');list.replaceChildren();
+  for(const player of data){
+   const li=document.createElement('li'),name=document.createElement('span'),badge=document.createElement('span');
+   const own=player.player_id===currentRoom.userId;
+   name.textContent=player.nickname+(own?' (you)':'');
+   badge.textContent=player.player_id===first.host_id?'👑 HOST':'🟢';
+   badge.className='crown';li.append(name,badge);list.append(li);
+  }
+  $('startGame').hidden=!isHost;
+  $('startGame').disabled=data.length<2;
+  $('roomTitle').textContent='WAITING ROOM';
+  roomMessage.textContent=isHost&&data.length<2?'Invite at least one friend to start.':'';
+ }catch(err){roomMessage.textContent='⚠️ '+errorText(err)}
+ finally{roomLoading=false}
+}
+function startPolling(){
+ clearInterval(refreshTimer);
+ refreshTimer=setInterval(()=>{
+  if(!currentRoom||document.hidden)return;
+  if(inGame)loadGame();else loadRoom();
+ },1350);
+}
+function exitRoom(){
+ clearInterval(refreshTimer);currentRoom=null;inGame=false;
+ gameState=null;lastEventSeen=null;privateClue='';
+ roomScreen.hidden=true;gameScreen.hidden=true;roomMessage.textContent='';
+ localStorage.removeItem('doi-v1-room');
+}
+$('startGame').addEventListener('click',async()=>{
+ if(!currentRoom||working)return;
+ working=true;$('startGame').disabled=true;roomMessage.textContent='Starting underwater game…';
+ try{
+  const {error}=await client.rpc('start_game_lobby',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  await loadRoom();
+ }catch(err){roomMessage.textContent='⚠️ '+errorText(err)}
+ finally{working=false}
+});
+$('leaveRoom').addEventListener('click',async()=>{
+ if(!currentRoom)return;
+ $('leaveRoom').disabled=true;
+ try{
+  const {error}=await client.rpc('leave_game_lobby',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  exitRoom();
+ }catch(err){roomMessage.textContent='⚠️ '+errorText(err)}
+ finally{$('leaveRoom').disabled=false}
+});
+$('refreshRoom').addEventListener('click',()=>{
+ roomMessage.textContent='🔄 Checking for players…';loadRoom();
+});
+$('copyCode').addEventListener('click',async()=>{
+ if(!currentRoom)return;
+ try{await navigator.clipboard.writeText(currentRoom.code);roomMessage.textContent='Room code copied!'}
+ catch{roomMessage.textContent='Share this code: '+currentRoom.code}
+});
+$('exitGame').addEventListener('click',()=>{
+ exitRoom();
+ // Ongoing matches keep running server-side; returning to the menu does not remove you.
+});
+function formatRemaining(iso){
+ if(!iso)return '--';
+ return Math.max(0,Math.ceil((new Date(iso).getTime()-Date.now())/1000))+'s';
+}
+function updateTimers(){
+ if(!gameState)return;
+ $('roundLeft').textContent=formatRemaining(gameState.round_ends_at);
+ $('turnLeft').textContent=gameState.pending_thief
+  ?formatRemaining(gameState.pending_deadline):formatRemaining(gameState.turn_ends_at);
+}
+setInterval(updateTimers,200);
+function showFeedback(message){
+ $('gameFeedback').textContent=message;
+}
+async function loadGame(){
+ if(!currentRoom||!client||gameLoading)return;
+ gameLoading=true;
+ try{
+  const {data,error}=await client.rpc('get_game_state',{p_lobby_id:currentRoom.id});
+  if(error)throw error;
+  if(data?.status==='preparing'){
+   $('gameEvent').textContent='Preparing multiplayer match…';return;
+  }
+  gameState=data;
+  renderGame();
+ }catch(err){showFeedback('⚠️ '+errorText(err))}
+ finally{gameLoading=false}
+}
+function renderGame(){
+ const s=gameState;
+ if(!s)return;
+ $('gameRound').textContent=s.round;
+ $('gameRoom').textContent=currentRoom?.code||'------';
+ const me=(s.players||[]).find(p=>p.id===currentRoom.userId);
+ const active=(s.players||[]).find(p=>p.id===s.turn_player);
+ const myTurn=s.turn_player===currentRoom.userId&&s.status==='playing';
+ const thiefIsMine=s.pending_thief===currentRoom.userId;
+ $('activePlayer').textContent=s.status==='finished'?'Match finished':active?.nickname||'Waiting...';
+ $('yourTurnLabel').textContent=s.status==='finished'?'🏆 Final results'
+  :thiefIsMine?'🥷 Choose a target!'
+  :myTurn?'🌟 YOUR TURN — make your move!':'Waiting for your turn...';
+ $('gameEvent').textContent=s.last_event||'A new mystery awaits...';
+ const list=$('gamePlayers');list.replaceChildren();
+ for(const p of s.players||[]){
+  const li=document.createElement('li');
+  if(p.id===s.turn_player&&s.status==='playing')li.classList.add('active');
+  if(!p.alive)li.classList.add('dead');
+  const pname=document.createElement('span');pname.className='player-name';
+  pname.textContent=(p.host?'👑 ':'')+p.nickname+(p.id===currentRoom.userId?' (you)':'');
+  const coins=document.createElement('span');coins.className='player-coins';coins.textContent='🪙 '+p.coins;
+  const badge=document.createElement('span');badge.className='badge';
+  badge.textContent=p.alive?(p.id===s.turn_player?'⚡ PLAYING':'● ALIVE'):'💀 ELIMINATED';
+  const shield=document.createElement('span');shield.className='shield-tag';
+  shield.textContent=p.shield>0?'🛡️ '+p.shield+' protection':'';
+  li.append(pname,coins,badge,shield);list.append(li);
+ }
+ const targetArea=$('thiefTargets'),targetButtons=$('targetButtons');
+ targetButtons.replaceChildren();
+ targetArea.hidden=!thiefIsMine||s.status!=='playing';
+ if(!targetArea.hidden){
+  for(const p of s.players.filter(p=>p.id!==currentRoom.userId&&p.coins>1)){
+   const btn=document.createElement('button');
+   btn.textContent=p.nickname+' · 🪙 '+p.coins+(p.shield?' 🛡️':'');
+   btn.dataset.target=p.id;btn.disabled=actionWorking;
+   targetButtons.append(btn);
+  }
+ }
+ const actionAllowed=myTurn&&!s.pending_thief&&!!me?.alive&&s.status==='playing';
+ for(const btn of document.querySelectorAll('[data-game-action]')){
+  const act=btn.dataset.gameAction;
+  let enabled=actionAllowed;
+  if(act==='STEAL_OPEN'){
+   enabled=!myTurn&&!!me?.alive&&s.snatch_available&&!s.pending_thief&&s.status==='playing';
+  }else if(act==='INSPECT'){
+   enabled=enabled&&me.coins>20&&inspectedSeq!==s.turn_seq;
+  }else if(act==='SHIELD'){
+   enabled=enabled&&me.coins>20&&me.shield===0;
+  }
+  btn.disabled=!enabled||actionWorking;
+ }
+ if(privateClue){$('clueCard').hidden=false;$('myClue').textContent=privateClue;}
+ else{$('clueCard').hidden=true;}
+ if(lastEventSeen!==null&&s.event_seq!==lastEventSeen){
+  const chest=$('animatedChest');
+  if(['treasure','jackpot','bomb','disaster','thief'].includes(s.last_outcome)){
+   chest.className='sea-chest '+s.last_outcome+' open';
+   setTimeout(()=>{chest.className='sea-chest'},1300);
+   privateClue='';$('clueCard').hidden=true;
+  }
+  if(s.last_outcome==='round'){
+   privateClue='';$('clueCard').hidden=true;
+  }
+ }
+ lastEventSeen=s.event_seq;
+ if(s.status==='finished'){
+  const winner=s.players.find(p=>p.id===s.winner_id);
+  $('gameEvent').textContent=winner?'🏆 '+winner.nickname+' WINS! Last survivor!':'🏁 Match finished!';
+  showFeedback('Match complete! Return to the menu to create a new room.');
+ }
+ updateTimers();
+}
+async function playAction(action,target=null){
+ if(!currentRoom||actionWorking||!client)return;
+ actionWorking=true;showFeedback('⏳ Processing '+action.toLowerCase().replace('_',' ')+'…');
+ if(gameState)renderGame();
+ try{
+  const {data,error}=await client.rpc('play_game_action',{
+   p_lobby_id:currentRoom.id,p_action:action,p_target:target
+  });
+  if(error)throw error;
+  if(data?.clue){privateClue=data.clue;inspectedSeq=gameState?.turn_seq??-1;}
+  showFeedback(data?.message||'Action completed!');
+  await loadGame();
+ }catch(err){showFeedback('⚠️ '+errorText(err))}
+ finally{actionWorking=false;if(gameState)renderGame()}
+}
+document.querySelectorAll('[data-game-action]').forEach(button=>{
+ button.addEventListener('click',()=>playAction(button.dataset.gameAction));
+});
+$('targetButtons').addEventListener('click',event=>{
+ const btn=event.target.closest('[data-target]');
+ if(btn)playAction('THIEF_TARGET',btn.dataset.target);
+});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeMenu()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)closeMenu()});
+(function makeBubbles(){
+ const root=$('bubbles');
+ for(let i=0;i<18;i++){
+  const bubble=document.createElement('i');bubble.className='bubble';
+  bubble.style.setProperty('--bubble-size',8+i%5*5+'px');
+  bubble.style.setProperty('--bubble-x',((i*37+13)%99)+'%');
+  bubble.style.setProperty('--bubble-speed',(12+(i*7)%17)+'s');
+  bubble.style.setProperty('--bubble-delay',(-i*2)+'s');
+  root.append(bubble);
+ }
+})();
+(async function restoreRoom(){
+ let saved=null;
+ try{saved=JSON.parse(localStorage.getItem('doi-v1-room')||'null')}
+ catch{localStorage.removeItem('doi-v1-room')}
+ if(!saved?.id||!saved?.userId||!client)return;
+ try{
+  const {data,error}=await client.auth.getSession();
+  if(error||data.session?.user?.id!==saved.userId)return;
+  currentRoom=saved;
+  await loadRoom();startPolling();
+ }catch(err){console.warn('Could not restore lobby:',err);exitRoom()}
+})();
+</script>
+</body>
+</html>
